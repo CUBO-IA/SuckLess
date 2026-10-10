@@ -51,6 +51,33 @@ Agrega tu API key en `.env` y ejecuta:
 boxlang --bx-config config/boxlang.json src/SuckLess.bxs
 ```
 
+### Alternativa local con Ollama
+
+Ollama permite ejecutar SuckLess sin una API key ni créditos de OpenAI.
+
+1. Instala Ollama en macOS desde <https://ollama.com/download/mac>.
+2. Descarga el modelo recomendado para este proyecto:
+
+```bash
+ollama pull qwen3:4b
+```
+
+3. Comprueba que Ollama esté activo:
+
+```bash
+ollama list
+```
+
+4. Ejecuta SuckLess con la configuración local:
+
+```bash
+boxlang --bx-config config/boxlang.ollama.json src/SuckLess.bxs
+```
+
+La primera descarga ocupa aproximadamente 2.5 GB. Si el equipo tiene poca
+memoria, cambia `qwen3:4b` por `qwen3:1.7b` en
+`config/boxlang.ollama.json` y descarga ese modelo en su lugar.
+
 La aplicación entrevista al usuario hasta completar el requerimiento y guarda el resultado en `output/`.
 
 ## Estructura

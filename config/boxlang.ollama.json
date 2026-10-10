@@ -1,0 +1,30 @@
+{
+  "modules": {
+    "bxai": {
+      "settings": {
+        "provider": "ollama",
+        "defaultParams": {
+          "temperature": 0.1
+        },
+        "providers": {
+          "ollama": {
+            "params": {
+              "model": "qwen3:4b"
+            },
+            "options": {
+              "baseUrl": "http://localhost:11434"
+            }
+          }
+        },
+        "memory": {
+          "provider": "window",
+          "config": {
+            "maxMessages": 30
+          }
+        },
+        "logRequestToConsole": false,
+        "logResponseToConsole": false
+      }
+    }
+  }
+}
