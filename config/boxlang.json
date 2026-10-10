@@ -1,0 +1,21 @@
+{
+  "modules": {
+    "bxai": {
+      "settings": {
+        "provider": "openai",
+        "apiKey": "${OPENAI_API_KEY}",
+        "defaultParams": {
+          "temperature": 0.1
+        },
+        "memory": {
+          "provider": "window",
+          "config": {
+            "maxMessages": 30
+          }
+        },
+        "logRequestToConsole": false,
+        "logResponseToConsole": false
+      }
+    }
+  }
+}

@@ -1,0 +1,161 @@
+/**
+ * SuckLess Requirement Gate
+ *
+ * Ejecutar desde la raíz del repositorio:
+ * boxlang --bx-config config/boxlang.json src/SuckLess.bxs
+ */
+
+schemaPath = expandPath( "./schemas/requirement-evaluation.json" );
+promptPath = expandPath( "./prompts/requirement-gate.md" );
+
+evaluationTemplate = deserializeJSON( fileRead( schemaPath ) );
+systemPrompt = fileRead( promptPath );
+
+function evaluateRequirement(
+    required string requirement,
+    array interviewHistory = []
+) {
+    userPrompt = "REQUERIMIENTO ACTUAL:" & chr( 10 ) &
+        requirement & chr( 10 ) & chr( 10 ) &
+        "HISTORIAL DE PREGUNTAS Y RESPUESTAS:" & chr( 10 ) &
+        serializeJSON( interviewHistory );
+
+    return aiChat(
+        messages: [
+            {
+                role: "system",
+                content: systemPrompt
+            },
+            {
+                role: "user",
+                content: userPrompt
+            }
+        ],
+        params: {
+            temperature: 0.1
+        },
+        returnFormat: evaluationTemplate
+    );
+}
+
+function passesQualityGate( required struct evaluation ) {
+    return evaluation.status == "READY_FOR_DEVELOPMENT" &&
+        evaluation.score >= 80 &&
+        evaluation.missingInformation.len() == 0 &&
+        evaluation.contradictions.len() == 0 &&
+        evaluation.acceptanceCriteria.len() >= 3;
+}
+
+function buildReport(
+    required struct evaluation,
+    required array interviewHistory
+) {
+    report = "## Requerimiento evaluado por SuckLess" & chr( 10 ) & chr( 10 );
+    report &= "#### Estado" & chr( 10 ) & chr( 10 );
+    report &= evaluation.status & chr( 10 ) & chr( 10 );
+    report &= "#### Puntaje" & chr( 10 ) & chr( 10 );
+    report &= evaluation.score & "/100" & chr( 10 ) & chr( 10 );
+    report &= "#### Resumen" & chr( 10 ) & chr( 10 );
+    report &= evaluation.summary & chr( 10 ) & chr( 10 );
+    report &= "#### Requerimiento normalizado" & chr( 10 ) & chr( 10 );
+    report &= evaluation.normalizedRequirement & chr( 10 ) & chr( 10 );
+    report &= "#### Criterios de aceptación" & chr( 10 );
+
+    evaluation.acceptanceCriteria.each( criterion => {
+        report &= chr( 10 ) & "- " & criterion;
+    } );
+
+    report &= chr( 10 ) & chr( 10 ) & "#### Suposiciones" & chr( 10 );
+
+    if ( evaluation.assumptions.len() == 0 ) {
+        report &= chr( 10 ) & "- Ninguna";
+    } else {
+        evaluation.assumptions.each( assumption => {
+            report &= chr( 10 ) & "- " & assumption;
+        } );
+    }
+
+    report &= chr( 10 ) & chr( 10 ) & "#### Historial de aclaraciones" & chr( 10 );
+
+    if ( interviewHistory.len() == 0 ) {
+        report &= chr( 10 ) & "- No se realizaron preguntas.";
+    } else {
+        interviewHistory.each( item => {
+            report &= chr( 10 ) & chr( 10 ) & "###### Pregunta" & chr( 10 ) & chr( 10 );
+            report &= item.question & chr( 10 ) & chr( 10 );
+            report &= "**Respuesta:** " & item.answer;
+        } );
+    }
+
+    return report & chr( 10 );
+}
+
+println( "====================================" );
+println( "       SuckLess Requirement Gate    " );
+println( "====================================" );
+println( "" );
+
+requirement = CLIRead( "Escribe o pega el requerimiento inicial: " );
+
+if ( requirement.trim().len() == 0 ) {
+    println( "El requerimiento no puede estar vacío." );
+    CLIExit( 1 );
+}
+
+interviewHistory = [];
+finalEvaluation = {};
+maxRounds = 8;
+
+for ( round = 1; round <= maxRounds; round++ ) {
+    println( "" );
+    println( "Evaluando requerimiento..." );
+
+    evaluation = evaluateRequirement( requirement, interviewHistory );
+
+    println( "Estado: #evaluation.status#" );
+    println( "Puntaje: #evaluation.score#/100" );
+    println( "Resumen: #evaluation.summary#" );
+
+    if ( passesQualityGate( evaluation ) ) {
+        finalEvaluation = evaluation;
+        break;
+    }
+
+    if ( evaluation.questions.len() == 0 ) {
+        println( "El requerimiento necesita revisión humana y no hay más preguntas." );
+        finalEvaluation = evaluation;
+        break;
+    }
+
+    evaluation.questions.each( question => {
+        println( "" );
+        answer = CLIRead( question & chr( 10 ) & "> " );
+
+        interviewHistory.append( {
+            question: question,
+            answer: answer
+        } );
+
+        requirement &= chr( 10 ) & chr( 10 ) &
+            "INFORMACIÓN CONFIRMADA:" & chr( 10 ) &
+            "Pregunta: " & question & chr( 10 ) &
+            "Respuesta: " & answer;
+    } );
+
+    finalEvaluation = evaluation;
+}
+
+outputPath = expandPath(
+    "./output/requirement-" & dateTimeFormat( now(), "yyyyMMdd-HHmmss" ) & ".md"
+);
+
+fileWrite(
+    outputPath,
+    buildReport( finalEvaluation, interviewHistory ),
+    "UTF-8",
+    true
+);
+
+println( "" );
+println( "Resultado guardado en:" );
+println( outputPath );

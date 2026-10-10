@@ -31,6 +31,39 @@ Challenge 10 — **THIS SUCKS**
 - BoxLang AI / BX Agents
 - Playwright para pruebas ejecutables
 
+## Inicio rápido
+
+### Requisitos
+
+- BoxLang 1.18 o posterior.
+- Una API key de OpenAI.
+
+### Instalación
+
+```bash
+install-bx-module bx-ai --local
+cp .env.example .env
+```
+
+Agrega tu API key en `.env` y ejecuta:
+
+```bash
+boxlang --bx-config config/boxlang.json src/SuckLess.bxs
+```
+
+La aplicación entrevista al usuario hasta completar el requerimiento y guarda el resultado en `output/`.
+
+## Estructura
+
+```text
+config/       Configuración de BoxLang AI
+docs/         Arquitectura y decisiones del proyecto
+examples/     Requerimientos para la demostración
+prompts/      Instrucciones reutilizables del agente
+schemas/      Contrato estructurado de evaluación
+src/          Aplicación BoxLang
+```
+
 ## Estado
 
-En desarrollo para el Hackathon ANIA × BoxLang AI.
+MVP en desarrollo para el Hackathon ANIA × BoxLang AI.
