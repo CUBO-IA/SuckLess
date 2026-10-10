@@ -15,9 +15,9 @@ function evaluateRequirement(
     required string requirement,
     array interviewHistory = []
 ) {
-    userPrompt = "REQUERIMIENTO ACTUAL:" & chr( 10 ) &
-        requirement & chr( 10 ) & chr( 10 ) &
-        "HISTORIAL DE PREGUNTAS Y RESPUESTAS:" & chr( 10 ) &
+    userPrompt = "REQUERIMIENTO ACTUAL:" & char( 10 ) &
+        requirement & char( 10 ) & char( 10 ) &
+        "HISTORIAL DE PREGUNTAS Y RESPUESTAS:" & char( 10 ) &
         jsonSerialize( interviewHistory );
 
     return aiChat(
@@ -50,44 +50,44 @@ function buildReport(
     required struct evaluation,
     required array interviewHistory
 ) {
-    report = "## Requerimiento evaluado por SuckLess" & chr( 10 ) & chr( 10 );
-    report &= "#### Estado" & chr( 10 ) & chr( 10 );
-    report &= evaluation.status & chr( 10 ) & chr( 10 );
-    report &= "#### Puntaje" & chr( 10 ) & chr( 10 );
-    report &= evaluation.score & "/100" & chr( 10 ) & chr( 10 );
-    report &= "#### Resumen" & chr( 10 ) & chr( 10 );
-    report &= evaluation.summary & chr( 10 ) & chr( 10 );
-    report &= "#### Requerimiento normalizado" & chr( 10 ) & chr( 10 );
-    report &= evaluation.normalizedRequirement & chr( 10 ) & chr( 10 );
-    report &= "#### Criterios de aceptación" & chr( 10 );
+    report = "## Requerimiento evaluado por SuckLess" & char( 10 ) & char( 10 );
+    report &= "#### Estado" & char( 10 ) & char( 10 );
+    report &= evaluation.status & char( 10 ) & char( 10 );
+    report &= "#### Puntaje" & char( 10 ) & char( 10 );
+    report &= evaluation.score & "/100" & char( 10 ) & char( 10 );
+    report &= "#### Resumen" & char( 10 ) & char( 10 );
+    report &= evaluation.summary & char( 10 ) & char( 10 );
+    report &= "#### Requerimiento normalizado" & char( 10 ) & char( 10 );
+    report &= evaluation.normalizedRequirement & char( 10 ) & char( 10 );
+    report &= "#### Criterios de aceptación" & char( 10 );
 
     evaluation.acceptanceCriteria.each( criterion => {
-        report &= chr( 10 ) & "- " & criterion;
+        report &= char( 10 ) & "- " & criterion;
     } );
 
-    report &= chr( 10 ) & chr( 10 ) & "#### Suposiciones" & chr( 10 );
+    report &= char( 10 ) & char( 10 ) & "#### Suposiciones" & char( 10 );
 
     if ( evaluation.assumptions.len() == 0 ) {
-        report &= chr( 10 ) & "- Ninguna";
+        report &= char( 10 ) & "- Ninguna";
     } else {
         evaluation.assumptions.each( assumption => {
-            report &= chr( 10 ) & "- " & assumption;
+            report &= char( 10 ) & "- " & assumption;
         } );
     }
 
-    report &= chr( 10 ) & chr( 10 ) & "#### Historial de aclaraciones" & chr( 10 );
+    report &= char( 10 ) & char( 10 ) & "#### Historial de aclaraciones" & char( 10 );
 
     if ( interviewHistory.len() == 0 ) {
-        report &= chr( 10 ) & "- No se realizaron preguntas.";
+        report &= char( 10 ) & "- No se realizaron preguntas.";
     } else {
         interviewHistory.each( item => {
-            report &= chr( 10 ) & chr( 10 ) & "###### Pregunta" & chr( 10 ) & chr( 10 );
-            report &= item.question & chr( 10 ) & chr( 10 );
+            report &= char( 10 ) & char( 10 ) & "###### Pregunta" & char( 10 ) & char( 10 );
+            report &= item.question & char( 10 ) & char( 10 );
             report &= "**Respuesta:** " & item.answer;
         } );
     }
 
-    return report & chr( 10 );
+    return report & char( 10 );
 }
 
 println( "====================================" );
@@ -129,16 +129,16 @@ for ( round = 1; round <= maxRounds; round++ ) {
 
     evaluation.questions.each( question => {
         println( "" );
-        answer = CLIRead( question & chr( 10 ) & "> " );
+        answer = CLIRead( question & char( 10 ) & "> " );
 
         interviewHistory.append( {
             question: question,
             answer: answer
         } );
 
-        requirement &= chr( 10 ) & chr( 10 ) &
-            "INFORMACIÓN CONFIRMADA:" & chr( 10 ) &
-            "Pregunta: " & question & chr( 10 ) &
+        requirement &= char( 10 ) & char( 10 ) &
+            "INFORMACIÓN CONFIRMADA:" & char( 10 ) &
+            "Pregunta: " & question & char( 10 ) &
             "Respuesta: " & answer;
     } );
 
