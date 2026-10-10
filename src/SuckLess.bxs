@@ -8,7 +8,7 @@
 schemaPath = expandPath( "../schemas/requirement-evaluation.json" );
 promptPath = expandPath( "../prompts/requirement-gate.md" );
 
-evaluationTemplate = deserializeJSON( fileRead( schemaPath ) );
+evaluationTemplate = jsonDeserialize( fileRead( schemaPath ) );
 systemPrompt = fileRead( promptPath );
 
 function evaluateRequirement(
@@ -18,7 +18,7 @@ function evaluateRequirement(
     userPrompt = "REQUERIMIENTO ACTUAL:" & chr( 10 ) &
         requirement & chr( 10 ) & chr( 10 ) &
         "HISTORIAL DE PREGUNTAS Y RESPUESTAS:" & chr( 10 ) &
-        serializeJSON( interviewHistory );
+        jsonSerialize( interviewHistory );
 
     return aiChat(
         messages: [
