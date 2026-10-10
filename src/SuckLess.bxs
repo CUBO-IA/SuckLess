@@ -5,8 +5,8 @@
  * boxlang --bx-config config/boxlang.json src/SuckLess.bxs
  */
 
-schemaPath = expandPath( "./schemas/requirement-evaluation.json" );
-promptPath = expandPath( "./prompts/requirement-gate.md" );
+schemaPath = expandPath( "../schemas/requirement-evaluation.json" );
+promptPath = expandPath( "../prompts/requirement-gate.md" );
 
 evaluationTemplate = deserializeJSON( fileRead( schemaPath ) );
 systemPrompt = fileRead( promptPath );
@@ -146,7 +146,7 @@ for ( round = 1; round <= maxRounds; round++ ) {
 }
 
 outputPath = expandPath(
-    "./output/requirement-" & dateTimeFormat( now(), "yyyyMMdd-HHmmss" ) & ".md"
+    "../output/requirement-" & dateTimeFormat( now(), "yyyyMMdd-HHmmss" ) & ".md"
 );
 
 fileWrite(
