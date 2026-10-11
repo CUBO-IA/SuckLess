@@ -121,7 +121,7 @@
   <p class="mono-label" id="hist-detail-meta"></p>
   <div class="hist-detail__body" id="hist-detail-body" aria-live="polite"></div>
   <div class="suckless-modal__actions">
-    <a class="btn btn--secondary" id="hist-detail-export" href="#" download>Exportar .md</a>
+    <a class="btn btn--secondary" id="hist-detail-export" href="##" download>Exportar .md</a>
     <button class="btn btn--secondary" type="button" id="hist-detail-close">Cerrar</button>
   </div>
 </dialog>
