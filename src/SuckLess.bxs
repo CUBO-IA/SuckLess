@@ -1,15 +1,52 @@
 /**
  * SuckLess Requirement Gate
  *
+ * Agente de IA: LM Studio local (API compatible con OpenAI) escuchando en
+ * http://localhost:1234/v1. No se necesita API key real de OpenAI.
+ *
  * Ejecutar desde la raíz del repositorio:
  * boxlang --bx-config config/boxlang.json src/SuckLess.bxs
  */
+
+// Endpoint de LM Studio expuesto en esta máquina
+LM_STUDIO_BASE_URL = "http://localhost:1234/v1";
+// LM Studio no valida credenciales, pero el proveedor exige un valor
+LM_STUDIO_API_KEY  = "lm-studio";
+// Los modelos locales con razonamiento pueden tardar varios minutos por llamada
+AI_TIMEOUT_SECONDS = 600;
 
 schemaPath = expandPath( "../schemas/requirement-evaluation.json" );
 promptPath = expandPath( "../prompts/requirement-gate.md" );
 
 evaluationTemplate = jsonDeserialize( fileRead( schemaPath ) );
 systemPrompt = fileRead( promptPath );
+
+// Detecta el modelo cargado en LM Studio (GET /v1/models)
+lmStudioModel = "";
+try {
+    lmStudioResponse = http( url: LM_STUDIO_BASE_URL & "/models" )
+        .method( "GET" )
+        .timeout( 10 )
+        .send();
+
+    if ( val( listFirst( lmStudioResponse.statusCode, " " ) ) == 200 ) {
+        lmStudioPayload = jsonDeserialize( lmStudioResponse.fileContent );
+        if ( lmStudioPayload.data.len() > 0 ) {
+            lmStudioModel = lmStudioPayload.data[ 1 ].id;
+        }
+    }
+} catch ( any e ) {
+    // LM Studio no está disponible; se reporta abajo
+}
+
+if ( !len( lmStudioModel ) ) {
+    println( "No se pudo contactar con LM Studio en " & LM_STUDIO_BASE_URL & "/models" );
+    println( "Abre LM Studio, carga un modelo y vuelve a ejecutar el script." );
+    CLIExit( 1 );
+}
+
+println( "Agente IA: LM Studio (" & LM_STUDIO_BASE_URL & ")" );
+println( "Modelo:    " & lmStudioModel );
 
 function evaluateRequirement(
     required string requirement,
@@ -32,9 +69,16 @@ function evaluateRequirement(
             }
         ],
         params: {
-            temperature: 0.1
+            temperature: 0.1,
+            model: lmStudioModel
         },
-        returnFormat: evaluationTemplate
+        options: {
+            provider: "openai-compatible",
+            baseURL: LM_STUDIO_BASE_URL,
+            apiKey: LM_STUDIO_API_KEY,
+            timeout: AI_TIMEOUT_SECONDS,
+            returnFormat: evaluationTemplate
+        }
     );
 }
 
