@@ -73,6 +73,35 @@ function evaluateRequirement(
     );
 }
 
+function normalizeEvaluation( required struct evaluation ) {
+    qualityCriteriaPassed = evaluation.score >= 80 &&
+        evaluation.missingInformation.len() == 0 &&
+        evaluation.contradictions.len() == 0 &&
+        evaluation.acceptanceCriteria.len() >= 3;
+
+    if ( qualityCriteriaPassed ) {
+        evaluation.status = "READY_FOR_DEVELOPMENT";
+        evaluation.questions = [];
+        return evaluation;
+    }
+
+    validStatuses = [
+        "NEEDS_INFORMATION",
+        "NEEDS_CLARIFICATION",
+        "NEEDS_REVIEW",
+        "READY_FOR_DEVELOPMENT",
+        "BLOCKED"
+    ];
+
+    if ( validStatuses.findNoCase( evaluation.status ) == 0 ) {
+        evaluation.status = evaluation.questions.len()
+            ? "NEEDS_CLARIFICATION"
+            : "NEEDS_REVIEW";
+    }
+
+    return evaluation;
+}
+
 function passesQualityGate( required struct evaluation ) {
     return evaluation.status == "READY_FOR_DEVELOPMENT" &&
         evaluation.score >= 80 &&
@@ -152,7 +181,9 @@ for ( round = 1; round <= maxRounds; round++ ) {
     println( "" );
     println( "Evaluando requerimiento..." );
 
-    evaluation = evaluateRequirement( requirement, interviewHistory );
+    evaluation = normalizeEvaluation(
+        evaluateRequirement( requirement, interviewHistory )
+    );
 
     println( "Estado: #evaluation.status#" );
     println( "Puntaje: #evaluation.score#/100" );
