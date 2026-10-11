@@ -81,6 +81,10 @@ function passesQualityGate( required struct evaluation ) {
         evaluation.acceptanceCriteria.len() >= 3;
 }
 
+function questionKey( required string question ) {
+    return question.lCase().trim();
+}
+
 function buildReport(
     required struct evaluation,
     required array interviewHistory
@@ -139,7 +143,10 @@ if ( requirement.trim().len() == 0 ) {
 
 interviewHistory = [];
 finalEvaluation = {};
-maxRounds = 8;
+askedQuestions = {};
+totalQuestions = 0;
+maxQuestions = 8;
+maxRounds = 6;
 
 for ( round = 1; round <= maxRounds; round++ ) {
     println( "" );
@@ -156,15 +163,32 @@ for ( round = 1; round <= maxRounds; round++ ) {
         break;
     }
 
-    if ( evaluation.questions.len() == 0 ) {
+    questionsToAsk = [];
+
+    evaluation.questions.each( question => {
+        key = questionKey( question );
+
+        if (
+            !askedQuestions.keyExists( key ) &&
+            questionsToAsk.len() < 2 &&
+            totalQuestions + questionsToAsk.len() < maxQuestions
+        ) {
+            questionsToAsk.append( question );
+        }
+    } );
+
+    if ( questionsToAsk.len() == 0 ) {
         println( "El requerimiento necesita revisión humana y no hay más preguntas." );
         finalEvaluation = evaluation;
         break;
     }
 
-    evaluation.questions.each( question => {
+    questionsToAsk.each( question => {
         println( "" );
         answer = CLIRead( question & char( 10 ) & "> " );
+
+        askedQuestions[ questionKey( question ) ] = true;
+        totalQuestions++;
 
         interviewHistory.append( {
             question: question,

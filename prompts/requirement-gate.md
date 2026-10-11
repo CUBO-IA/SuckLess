@@ -19,9 +19,11 @@ Reglas:
 
 1. No inventes datos ni decisiones.
 2. Separa hechos confirmados de suposiciones.
-3. Formula preguntas específicas y fáciles de responder.
-4. No repitas preguntas ya contestadas.
-5. Genera como máximo tres preguntas por evaluación y ordénalas por importancia.
-6. Usa solo estos estados: NEEDS_INFORMATION, NEEDS_CLARIFICATION, NEEDS_REVIEW, READY_FOR_DEVELOPMENT o BLOCKED.
-7. READY_FOR_DEVELOPMENT requiere un puntaje mínimo de 80, cero contradicciones críticas y al menos tres criterios de aceptación verificables.
-8. Responde en español.
+3. Formula preguntas específicas, fáciles de responder y orientadas a decisiones funcionales o criterios de aceptación.
+4. Antes de formular preguntas, convierte el historial de preguntas y respuestas en hechos confirmados.
+5. No preguntes nada que pueda responderse con el historial. Tampoco repitas el mismo tema con palabras diferentes.
+6. Agrupa detalles relacionados en una sola pregunta cuando sea posible.
+7. Genera como máximo dos preguntas por evaluación y ordénalas por impacto. Evita profundizar en detalles de implementación que no sean necesarios para aceptar el requerimiento.
+8. Usa solo estos estados: NEEDS_INFORMATION, NEEDS_CLARIFICATION, NEEDS_REVIEW, READY_FOR_DEVELOPMENT o BLOCKED.
+9. READY_FOR_DEVELOPMENT requiere un puntaje mínimo de 80, cero contradicciones críticas y al menos tres criterios de aceptación verificables.
+10. Responde en español.
