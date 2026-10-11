@@ -1,0 +1,115 @@
+/* SuckLess · modules/history.css — Report History & Export (Etapa 7) */
+
+.history { display: flex; flex-direction: column; gap: 20px; }
+
+/* ---------- Filtros (§3.4 form; chips multi-selección) ---------- */
+.hist-filter { display: flex; flex-direction: column; gap: 14px; margin-top: 8px; }
+.hist-chips {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 12px 16px 14px;
+  display: flex; flex-wrap: wrap; gap: 10px;
+}
+.hist-chips legend {
+  padding: 0 8px;
+  font-size: 0.72rem;
+}
+.hist-search, .hist-sort { display: flex; }
+.hist-search { flex: 1; min-width: 220px; }
+.hist-search .input { width: 100%; }
+@media (min-width: 768px) {
+  .hist-filter { flex-direction: row; align-items: flex-end; flex-wrap: wrap; }
+  .hist-search { flex: 1 1 auto; }
+}
+
+/* Chip = objetivo táctil cómodo (§1.4: ≥44px efectivos con padding) */
+.chip {
+  display: inline-flex; align-items: center; gap: 8px;
+  border: 1px solid var(--border-strong);
+  border-radius: 999px;
+  padding: 10px 16px 10px 12px;
+  cursor: pointer;
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+  background: var(--bg-card);
+  transition: border-color var(--t-fast) ease, color var(--t-fast) ease, background var(--t-fast) ease;
+}
+.chip:hover { border-color: var(--cyan); color: var(--text-primary); }
+.chip:has(input:checked) {
+  border-color: var(--cyan);
+  color: var(--cyan-bright);
+  background: rgba(6, 182, 212, 0.08);
+}
+.chip input { accent-color: var(--cyan); width: 1rem; height: 1rem; }
+.chip:has(input:focus-visible) {
+  outline: 2px solid var(--cyan-bright);
+  outline-offset: 2px;
+}
+
+/* ---------- Tabla de historial ---------- */
+#hist-rows td { vertical-align: middle; }
+.hist-open {
+  border: 0; background: transparent; padding: 6px 2px;
+  color: var(--text-primary);
+  font: inherit; font-size: 0.92rem;
+  text-align: left; cursor: pointer;
+  text-decoration: underline transparent;
+  text-underline-offset: 3px;
+  transition: text-decoration-color var(--t-fast) ease;
+  min-height: 32px;
+}
+.hist-open:hover, .hist-open:focus-visible { text-decoration-color: var(--cyan-bright); color: var(--cyan-bright); }
+.hist-row-delete { color: var(--fail); }
+.hist-row-delete:hover { border-color: var(--fail); }
+
+/* ---------- Paginación ---------- */
+.hist-pager {
+  display: flex; align-items: center; justify-content: center;
+  gap: 14px; margin-top: 16px; min-height: 44px;
+}
+.hist-pager:empty { display: none; }
+
+/* ---------- Elemento no encontrado en tokens: barra de progreso local ---------- */
+.progress {
+  width: 100%; height: 10px;
+  border-radius: 999px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  overflow: hidden;
+}
+.progress__bar {
+  height: 100%; width: 0%;
+  background: linear-gradient(90deg, var(--cyan), var(--magenta));
+  transition: width var(--t-fast) ease;
+}
+
+/* ---------- Modal de detalle (zona limpia §3.6) ---------- */
+dialog.hist-detail { max-width: min(720px, calc(100vw - 32px)); }
+.hist-detail__body { margin-top: 8px; max-height: 55vh; overflow: auto; }
+.hist-report {
+  margin: 0;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 14px 16px;
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  line-height: 1.55;
+  white-space: pre-wrap;
+  word-break: break-word;
+  color: var(--text-primary);
+  box-shadow: none !important;
+  text-shadow: none !important; /* zona limpia: sin glow ni gradiente */
+}
+.modal-text { color: var(--text-secondary); margin: 0 0 8px; }
+.modal-text--warn { color: var(--warn); }
+
+/* ---------- Responsivo (§1.5): la tabla apila a tarjetas vía table.css;
+   solo ajustamos densidad de controles ---------- */
+@media (max-width: 480px) {
+  .hist-pager { flex-wrap: wrap; }
+  .chip { padding: 8px 12px 8px 10px; font-size: 0.72rem; }
+}

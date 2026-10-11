@@ -42,6 +42,7 @@
     <link rel="stylesheet" href="/assets/css/modules/requirements.css">
     <link rel="stylesheet" href="/assets/css/modules/executor.css">
     <link rel="stylesheet" href="/assets/css/modules/code.css">
+    <link rel="stylesheet" href="/assets/css/modules/history.css">
     <!-- El JS detecta no-js y lo quita: progressive enhancement vía clase. -->
     <script>document.documentElement.classList.remove('no-js');</script>
     <script type="module" src="/assets/js/main.js"></script>

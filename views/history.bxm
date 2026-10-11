@@ -1,0 +1,142 @@
+<!--
+  SuckLess · views/history.bxm — Report History & Export (Etapa 7).
+  Contenido del <main> del layout base. SSR renderiza el andamiaje COMPLETO:
+  filtros, tabla con cabeceras y estado vacío; el JS (modules/history.js) solo
+  añade interactividad: cargar datos, filtrar/borrar/exportar SIN recarga
+  (criterio de aceptación § Etapa 7), sincronizar filtros con la URL
+  (?type=REVIEW) y abrir detalle/export con progreso.
+
+  Seguridad §1.2: las filas, badges y detalles se construyen en JS con
+  textContent/createElement; nada de innerHTML con datos del backend.
+-->
+<bx:output>
+<div class="history">
+  <!-- ======================= CABECERA ======================= -->
+  <section class="card card--lg animate-in" aria-labelledby="hist-title">
+    <h1 id="hist-title" class="neon">Historial</h1>
+    <p class="hero__sub">
+      Recupera y gestiona análisis previos: diagnósticos, explicaciones, revisiones,
+      verificaciones y requisitos. Exporta el reporte en Markdown o elimina lo obsoleto.
+      <strong>El filtrado y el borrado no recargan la página.</strong>
+    </p>
+
+    <!-- Filtros: chips multi-selección por tipo + búsqueda + orden + paginación -->
+    <form class="hist-filter" id="hist-filter" role="search" aria-label="Filtrar historial">
+      <fieldset class="hist-chips">
+        <legend class="mono-label">Tipo</legend>
+        <!-- checkbox múltiple: chips multi-selección; en SSR ninguna marcada (= todos) -->
+        <label class="chip"><input type="checkbox" name="type" value="requirements" /> Requirements</label>
+        <label class="chip"><input type="checkbox" name="type" value="debug" /> Debug</label>
+        <label class="chip"><input type="checkbox" name="type" value="verify" /> Verify</label>
+        <label class="chip"><input type="checkbox" name="type" value="explain" /> Explain</label>
+        <label class="chip"><input type="checkbox" name="type" value="review" /> Review</label>
+      </fieldset>
+
+      <div class="hist-search">
+        <label class="visually-hidden" for="hist-q">Buscar en título o estado</label>
+        <input class="input" type="search" id="hist-q" name="q" placeholder="Buscar por título o estado…" autocomplete="off" />
+      </div>
+
+      <div class="hist-sort">
+        <label class="visually-hidden" for="hist-order">Orden</label>
+        <select class="select" id="hist-order" name="order">
+          <option value="desc">Más recientes primero</option>
+          <option value="asc">Más antiguos primero</option>
+        </select>
+      </div>
+    </form>
+
+    <p class="mono-label" id="hist-count" role="status" aria-live="polite">Cargando…</p>
+  </section>
+
+  <!-- ======================= TABLA / GRID ======================= -->
+  <section class="card card--lg animate-in" aria-labelledby="hist-table-title">
+    <h2 id="hist-table-title" class="visually-hidden">Análisis previos</h2>
+    <div class="table-wrap">
+      <table class="data" id="hist-table" tabindex="-1">
+        <caption class="visually-hidden">
+          Lista de análisis prevos con tipo, título, estado, fecha y acciones
+        </caption>
+        <thead>
+          <tr>
+            <th scope="col">Tipo</th>
+            <th scope="col">Título</th>
+            <th scope="col">Estado</th>
+            <th class="num" scope="col">Fecha</th>
+            <th scope="col">Acciones</th>
+          </tr>
+        </thead>
+        <tbody id="hist-rows">
+          <!-- Sin JS: sin datos (el backend futuro poblará en SSR); el JS puebla filas -->
+          <tr><td colspan="5" class="mono-label">Sin datos aún. Con servidor, aquí aparecerán los análisis.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Paginación simple (JS ajusta texto/botones) -->
+    <nav class="hist-pager" id="hist-pager" aria-label="Paginación de historial">
+      <button class="btn btn--ghost btn--sm" type="button" id="hist-prev" hidden>&larr; Anteriores</button>
+      <span class="mono-label" id="hist-page-label"></span>
+      <button class="btn btn--ghost btn--sm" type="button" id="hist-next" hidden>Posteriores &rarr;</button>
+    </nav>
+
+    <!-- Vacío / estado sin resultados del filtro (JS lo alterna) -->
+    <div class="empty-state" id="hist-empty" hidden>
+      <span class="empty-state__icon" aria-hidden="true">≡</span>
+      <p class="empty-state__title" id="hist-empty-title">Aún no hay análisis</p>
+      <p class="empty-state__hint">Los análisis de Two Doors, Executor y Code Review aparecerán aquí automáticamente.</p>
+      <a class="btn btn--secondary" href="/views/two-doors-index.bxm">Ir a Two Doors</a>
+    </div>
+
+    <!-- Error: mensaje + reintento (la carga es lo único que puede fallar visiblemente) -->
+    <div class="empty-state empty-state--error" id="hist-error" hidden>
+      <span class="empty-state__icon" aria-hidden="true">⚠</span>
+      <p class="empty-state__title" id="hist-error-title">No se pudo cargar el historial</p>
+      <p class="empty-state__hint" id="hist-error-msg"></p>
+      <button class="btn btn--secondary" type="button" id="hist-retry">Reintentar</button>
+    </div>
+
+    <p class="provenance provenance--mock" style="margin-top:16px;">Dato de ejemplo</p>
+  </section>
+</div>
+
+<!-- ======================= MODAL: CONFIRMACIÓN DE BORRADO ======================= -->
+<!-- § Etapa 7: "Se eliminarán el registro y sus datos asociados". Sin JS el
+     botón Enviar no hace nada (no-JS-safe); el JS lo conecta con DELETE. -->
+<dialog class="suckless-modal" id="hist-delete-modal" aria-labelledby="hist-delete-title">
+  <h2 class="suckless-modal__title" id="hist-delete-title">¿Eliminar este análisis?</h2>
+  <p class="modal-text">Se eliminarán el registro <code id="hist-del-id" class="mono-label"></code> y <strong>todos sus datos asociados</strong> (hallazgos, evidencia, trazas, capturas y el reporte exportable).</p>
+  <p class="modal-text modal-text--warn"><span aria-hidden="true">⚠</span> Esta acción no se puede deshacer.</p>
+  <div class="suckless-modal__actions">
+    <button class="btn btn--secondary" type="button" id="hist-del-cancel">Cancelar</button>
+    <button class="btn btn--danger" type="button" id="hist-del-confirm">Borrar definitivamente</button>
+  </div>
+</dialog>
+
+<!-- ======================= MODAL: DETALLE DEL ANÁLISIS ======================= -->
+<dialog class="suckless-modal hist-detail" id="hist-detail-modal" aria-labelledby="hist-detail-title">
+  <h2 class="suckless-modal__title" id="hist-detail-title">Detalle del análisis</h2>
+  <!-- Sin JS: el detalle requiere JS (el backend aún no expone /api/history/{id});
+       el JS rellena estas zonas con textContent. -->
+  <p class="mono-label" id="hist-detail-meta"></p>
+  <div class="hist-detail__body" id="hist-detail-body" aria-live="polite"></div>
+  <div class="suckless-modal__actions">
+    <a class="btn btn--secondary" id="hist-detail-export" href="#" download>Exportar .md</a>
+    <button class="btn btn--secondary" type="button" id="hist-detail-close">Cerrar</button>
+  </div>
+</dialog>
+
+<!-- ======================= MODAL: EXPORT CON PROGRESO ======================= -->
+<!-- § Etapa 7: export con indicador de progreso (barra), aún sin backend -->
+<dialog class="suckless-modal" id="hist-export-modal" aria-labelledby="hist-export-title">
+  <h2 class="suckless-modal__title" id="hist-export-title">Exportando reporte…</h2>
+  <p class="mono-label" id="hist-export-id"></p>
+  <div class="progress" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" aria-labelledby="hist-export-title" id="hist-export-progress">
+    <div class="progress__bar" id="hist-export-bar"></div>
+  </div>
+  <p class="mono-label" id="hist-export-status">Preparando descarga…</p>
+  <div class="suckless-modal__actions">
+    <button class="btn btn--secondary" type="button" id="hist-export-close">Cerrar</button>
+  </div>
+</dialog>
+</bx:output>

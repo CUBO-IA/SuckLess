@@ -176,7 +176,7 @@ function renderHistorySummary(container, data) {
   box.append(list, Object.assign(document.createElement('a'), {
     className: 'btn btn--ghost btn--sm',
     textContent: 'Ver todo →',
-    href: '/views/history.bxm',
+    href: '/views/history-index.bxm',
   }));
   setChildren(container, [box]);
 }

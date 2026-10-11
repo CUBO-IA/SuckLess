@@ -48,7 +48,7 @@
     <li class="step">
       <span class="step__badge">Pendiente</span>
       <span class="step__label">VERIFICAR</span>
-      <a class="step__link" href="/views/history.bxm">Ver historial →</a>
+      <a class="step__link" href="/views/history-index.bxm">Ver historial →</a>
     </li>
   </ol>
 </nav>
@@ -98,7 +98,7 @@
       <p class="card__meta">Explica el flujo de una función y revisa hallazgos con evidencia archivo:línea y parches copiables.</p>
       <span class="provenance">Hallazgo demostrado ≠ sugerencia</span>
     </a>
-    <a class="card card--hover card--link" href="/views/history.bxm">
+    <a class="card card--hover card--link" href="/views/history-index.bxm">
       <h3 class="card__title"><span aria-hidden="true">≡</span> Historial</h3>
       <p class="card__meta">Recupera análisis previos, expórtalos a Markdown y borra datos obsoletos.</p>
       <span class="provenance">Evidencia reproducible</span>
