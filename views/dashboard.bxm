@@ -23,7 +23,7 @@
   </p>
   <div class="hero__cta">
     <a class="btn btn--primary" href="/views/two-doors.bxm">Abrir Two Doors</a>
-    <a class="btn btn--secondary" href="/views/requirements.bxm">Comenzar un requisito</a>
+    <a class="btn btn--secondary" href="/views/requirements-index.bxm">Comenzar un requisito</a>
   </div>
 </section>
 
