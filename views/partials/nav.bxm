@@ -14,7 +14,7 @@
     </button>
     <ul class="nav__links" id="nav-links">
       <li><a class="nav__link" href="/" #( activeNav == 'dashboard' ? 'aria-current="page"' : '' )#>Panel</a></li>
-      <li><a class="nav__link" href="/requirements" #( activeNav == 'requirements' ? 'aria-current="page"' : '' )#>Requirements</a></li>
+      <li><a class="nav__link" href="/views/requirements-index.bxm" #( activeNav == 'requirements' ? 'aria-current="page"' : '' )#>Requirements</a></li>
       <li><a class="nav__link" href="/two-doors" #( activeNav == 'two-doors' ? 'aria-current="page"' : '' )#>Two Doors</a></li>
       <li><a class="nav__link" href="/executor" #( activeNav == 'executor' ? 'aria-current="page"' : '' )#>Executor</a></li>
       <li><a class="nav__link" href="/code" #( activeNav == 'code' ? 'aria-current="page"' : '' )#>Código</a></li>

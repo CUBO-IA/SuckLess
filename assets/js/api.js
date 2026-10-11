@@ -102,6 +102,12 @@ const MOCK_ROUTES = [
       return { status: 400, file: 'requirements-analyze.validation.json', body: { error: { code: 'VALIDATION', message: 'El texto del requisito es obligatorio.' } } };
     }
     if (body.text.trim() === '{TIMEOUT}') return { status: 504, file: 'requirements-analyze.timeout.json' };
+    // Transición de estados del mock: si el cliente responde todas las
+    // preguntas (body.answers con todas), el backend marca READY_FOR_REVIEW.
+    const answers = body.answers ?? null;
+    if (answers && typeof answers === 'object' && Object.keys(answers).length >= 3) {
+      return { status: 200, file: 'requirements-analyze.ready.json' };
+    }
     return { status: 200, file: 'requirements-analyze.ok.json' };
   }],
   ['POST', /^\/api\/requirements\/approve$/, (url, body) => {

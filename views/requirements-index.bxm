@@ -1,0 +1,13 @@
+<!--
+  SuckLess · views/requirements-index.bxm — página del Requirements Gate (Etapa 4).
+  Patrón idéntico a index.bxm / two-doors-index.bxm: savecontent + layout base.
+-->
+<bx:set pageTitle = "Requirements Gate" />
+<bx:set activeNav = "requirements" />
+<bx:set useMock = true />
+
+<bx:savecontent variable="pageContent">
+  <bx:include template="requirements.bxm" />
+</bx:savecontent>
+
+<bx:include template="layouts/base.bxm" />
