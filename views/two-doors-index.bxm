@@ -5,7 +5,7 @@
 -->
 <bx:set pageTitle = "Two Doors" />
 <bx:set activeNav = "two-doors" />
-<bx:set useMock = true />
+<bx:set useMock = false />
 <bx:set mode = URL.mode ?: 'debug' />
 
 <bx:savecontent variable="pageContent">
