@@ -1,10 +1,8 @@
 import {
-  answerRequirement, approveRequirement, getRequirement, listRequirements, requirementQuestions, startRequirement,
+  answerRequirement, approveRequirement, detectDomain, getRequirement, listRequirements, requirementQuestions, startRequirement,
 } from '../../engine/requirements.js';
 import { saveRequirementSnapshot } from '../../engine/service.js';
 import { httpError, jsonResult, mapRequirementStatus, validateObject } from './shared.js';
-
-const DECISION_IDS = new Set(['combinable', 'expired', 'taxOrder', 'persistCoupons']);
 
 function documentOf(requirement) {
   return {
@@ -41,19 +39,47 @@ function responseOf(requirement) {
 function answerPatch(requirement, answers) {
   validateObject(answers, 'answers');
   const fields = new Set(['objective', 'actor', 'expectedBehavior', 'inputs', 'errors', 'acceptance', 'edgeCases', 'rules']);
+  const questions = new Map(requirementQuestions(requirement).map((question) => [question.id, question]));
   const patch = { decisions: {} };
   for (const [id, item] of Object.entries(answers)) {
-    const answer = item && typeof item === 'object' && !Array.isArray(item) ? item.answer : item;
-    if (answer === undefined || answer === null || String(answer).trim() === '') continue;
-    if (fields.has(id)) patch[id] = answer;
-    else if (DECISION_IDS.has(id)) patch.decisions[id] = answer;
-    else {
-      const q = requirement.questions.find((question) => question.id === id);
-      if (q?.field.startsWith('decisions.')) patch.decisions[q.field.slice('decisions.'.length)] = answer;
-      else throw httpError(400, 'VALIDATION', `Respuesta desconocida: ${id}.`);
+    const question = questions.get(id);
+    if (!fields.has(id) && !question) throw httpError(400, 'VALIDATION', `Respuesta desconocida: ${id}.`);
+
+    let answer = item;
+    if (item !== null && typeof item === 'object') {
+      if (Array.isArray(item)) throw httpError(400, 'VALIDATION', `La respuesta ${id} debe ser texto.`);
+      if (Object.keys(item).some((key) => !['answered', 'answer'].includes(key))) {
+        throw httpError(400, 'VALIDATION', `La respuesta ${id} solo admite answered y answer.`);
+      }
+      if (item.answered !== undefined && typeof item.answered !== 'boolean') {
+        throw httpError(400, 'VALIDATION', `answered para ${id} debe ser booleano.`);
+      }
+      if (item.answered === false) continue;
+      if (!Object.hasOwn(item, 'answer')) throw httpError(400, 'VALIDATION', `La respuesta ${id} debe incluir answer.`);
+      answer = item.answer;
     }
+
+    if (answer === undefined || answer === null || (typeof answer === 'string' && !answer.trim())) continue;
+    if (typeof answer !== 'string') throw httpError(400, 'VALIDATION', `La respuesta ${id} debe ser texto.`);
+    if (fields.has(id)) patch[id] = answer;
+    else if (question.field.startsWith('decisions.')) patch.decisions[question.field.slice('decisions.'.length)] = answer;
+    else patch[id] = answer;
   }
   return patch;
+}
+
+function newRequirementQuestions(text) {
+  return {
+    domain: detectDomain(text),
+    actor: '',
+    expectedBehavior: '',
+    inputs: [],
+    errors: [],
+    acceptance: [],
+    edgeCases: [],
+    rules: [],
+    decisions: {},
+  };
 }
 
 export async function handle(req, url, body) {
@@ -82,12 +108,10 @@ export async function handle(req, url, body) {
         ? answerRequirement(body.id, answers)
         : requirement;
     } else {
+      const answers = body.answers === undefined ? null : answerPatch(newRequirementQuestions(text), body.answers);
       requirement = startRequirement(text);
-      if (body.answers !== undefined) {
-        const answers = answerPatch(requirement, body.answers);
-        if (Object.keys(answers).some((key) => key !== 'decisions') || Object.keys(answers.decisions).length) {
-          requirement = answerRequirement(requirement.id, answers);
-        }
+      if (answers && (Object.keys(answers).some((key) => key !== 'decisions') || Object.keys(answers.decisions).length)) {
+        requirement = answerRequirement(requirement.id, answers);
       }
     }
     return jsonResult(responseOf(requirement));

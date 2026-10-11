@@ -81,7 +81,7 @@ Recibe el texto libre del requerimiento, devuelve la entrevista sugerida.
 |---|---|---|
 | `text` | string | `1–5000` caracteres tras trim. En una reentrevista, se vuelve a enviar el texto junto con el ID estable. |
 | `id` | string·opcional | `REQ-` + seis caracteres hexadecimales; se usa para actualizar el mismo requisito. Si se omite, crea uno nuevo. |
-| `answers` | object·opcional | Respuestas con clave igual a `questions[].id`; cada valor es una cadena o `{ answered, answer }`. |
+| `answers` | object·opcional | Respuestas con clave igual a `questions[].id`; cada valor es texto o `{ answered, answer }`, donde `answered` es booleano y `answer` es texto. `answered: false` no registra una respuesta; claves desconocidas o valores de otro tipo se rechazan con `400 VALIDATION`. |
 
 **Response 200**
 

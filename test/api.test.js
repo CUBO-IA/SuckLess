@@ -37,25 +37,61 @@ test('API HTTP: requirement interview, approval, async execution and history rou
       expectedBehavior: { answered: true, answer: 'Aplica el cupón al carrito' },
       inputs: { answered: true, answer: 'Código de cupón' },
       errors: { answered: true, answer: 'Rechazar cupón vencido' },
-      acceptance: { answered: true, answer: 'El descuento coincide con el porcentaje' },
-      edgeCases: { answered: true, answer: 'Carrito vacío' },
+      acceptance: { answered: false, answer: 'El descuento coincide con el porcentaje' },
+      edgeCases: { answered: false, answer: 'Carrito vacío' },
       combinable: { answered: true, answer: 'no' },
       expired: { answered: true, answer: 'reject' },
       taxOrder: { answered: true, answer: 'before_tax' },
       persistCoupons: { answered: true, answer: 'yes' },
     };
-    const ready = await json(base, '/api/requirements/analyze', {
+    const partial = await json(base, '/api/requirements/analyze', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ id: start.body.id, text: start.body.document.objective, answers }),
     });
+    assert.equal(partial.body.id, start.body.id);
+    assert.equal(partial.body.status, 'INCOMPLETE');
+    assert.ok(partial.body.missingFields.includes('acceptance'));
+    assert.ok(partial.body.missingFields.includes('edgeCases'));
+
+    const rejectedApproval = await json(base, '/api/requirements/approve', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id: start.body.id, approvedBy: 'QA' }),
+    });
+    assert.equal(rejectedApproval.response.status, 400);
+    assert.equal(rejectedApproval.body.error.code, 'VALIDATION');
+
+    const ready = await json(base, '/api/requirements/analyze', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        id: partial.body.id,
+        text: partial.body.document.objective,
+        answers: {
+          acceptance: { answered: true, answer: 'El descuento coincide con el porcentaje' },
+          edgeCases: { answered: true, answer: 'Carrito vacío' },
+        },
+      }),
+    });
+    assert.equal(ready.body.id, start.body.id);
     assert.equal(ready.body.status, 'READY_FOR_REVIEW');
     assert.deepEqual(ready.body.missingFields, []);
-    assert.equal(ready.body.questions.length, start.body.questions.length);
+    assert.deepEqual(ready.body.questions.map((question) => question.id), start.body.questions.map((question) => question.id));
     assert.ok(ready.body.questions.every((question) => question.answered));
     assert.equal(ready.body.questions.find((question) => question.id === 'actor').answer, 'Cliente');
     assert.equal(ready.body.questions.find((question) => question.id === 'combinable').answer, 'no');
     assert.equal(ready.body.document.edgeCases[0], 'Carrito vacío');
+    assert.equal(ready.body.document.behavior, 'Aplica el cupón al carrito');
+    assert.equal(Object.hasOwn(ready.body.document, 'expectedBehavior'), false);
+
+    const invalidApprover = await json(base, '/api/requirements/approve', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id: start.body.id, approvedBy: 'Q' }),
+    });
+    assert.equal(invalidApprover.response.status, 400);
+    assert.equal(invalidApprover.body.error.code, 'VALIDATION');
 
     const approved = await json(base, '/api/requirements/approve', {
       method: 'POST',
@@ -165,6 +201,35 @@ test('API HTTP: adapters return contract shapes and errors use the uniform envel
     assert.equal(invalid.response.status, 400);
     assert.deepEqual(Object.keys(invalid.body.error).sort(), ['code', 'message']);
     assert.equal(invalid.body.error.code, 'VALIDATION');
+
+    const invalidAnswer = await json(base, '/api/requirements/analyze', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        text: 'Un proceso válido',
+        answers: { actor: { answered: true, answer: { name: 'Cliente' } } },
+      }),
+    });
+    assert.equal(invalidAnswer.response.status, 400);
+    assert.equal(invalidAnswer.body.error.code, 'VALIDATION');
+    const afterInvalidAnswer = await json(base, '/api/requirements');
+    assert.ok(afterInvalidAnswer.body.every((requirement) => requirement.title !== 'Un proceso válido'));
+
+    const invalidId = await json(base, '/api/requirements/analyze', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id: 'invalid', text: 'Un proceso válido' }),
+    });
+    assert.equal(invalidId.response.status, 400);
+    assert.equal(invalidId.body.error.code, 'VALIDATION');
+
+    const unknownId = await json(base, '/api/requirements/analyze', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id: 'REQ-000000', text: 'Un proceso válido' }),
+    });
+    assert.equal(unknownId.response.status, 404);
+    assert.equal(unknownId.body.error.code, 'NOT_FOUND');
 
     const missing = await json(base, '/api/history/99999999');
     assert.equal(missing.response.status, 404);
