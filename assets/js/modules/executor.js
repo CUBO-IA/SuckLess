@@ -282,7 +282,7 @@ function cancelRun() {
 
 async function populateRequirements() {
   try {
-    const { data } = await api('/api/history?type=requirements');
+    const { data } = await api('/api/requirements');
     const sel = el('#exec-reqid');
     if (!sel) return;
     const list = Array.isArray(data) ? data : [];

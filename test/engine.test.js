@@ -11,7 +11,7 @@ import { runDebug, runExplain, runReview, runVerify, realTrace } from '../engine
 import { countArtifacts, deleteAnalysis, getAnalysis, listAnalyses } from '../engine/history.js';
 import { findFunctions } from '../engine/code.js';
 
-const ANSWERS = { actor: 'Cliente', expectedBehavior: 'Aplica el cupón', inputs: 'código', errors: 'cupón inválido', acceptance: 'Total correcto', decisions: { combinable: 'no', expired: 'reject', taxOrder: 'before_tax', persistCoupons: 'yes' } };
+const ANSWERS = { actor: 'Cliente', expectedBehavior: 'Aplica el cupón', inputs: 'código', errors: 'cupón inválido', acceptance: 'Total correcto', edgeCases: 'Carrito vacío', decisions: { combinable: 'no', expired: 'reject', taxOrder: 'before_tax', persistCoupons: 'yes' } };
 const approvedReq = () => {
   const d = R.startRequirement('El carrito debe aplicar descuentos');
   R.answerRequirement(d.id, ANSWERS);

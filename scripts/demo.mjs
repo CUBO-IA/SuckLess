@@ -12,7 +12,7 @@ console.log(`"${d.objective}" → ${d.status}. SuckLess pregunta (no supone):`);
 d.questions.filter((q) => q.type === 'choice').forEach((q) => console.log(`  • ${q.text}`));
 
 step(2, 'El equipo responde y se completa el documento');
-d = R.answerRequirement(d.id, { actor: 'Cliente de la tienda', expectedBehavior: 'El carrito descuenta según el cupón aplicado', inputs: 'código de cupón', errors: 'cupón inválido, vencido o repetido', acceptance: 'El total refleja el descuento correcto', decisions: { combinable: 'no', expired: 'reject', taxOrder: 'before_tax', persistCoupons: 'yes' } });
+d = R.answerRequirement(d.id, { actor: 'Cliente de la tienda', expectedBehavior: 'El carrito descuenta según el cupón aplicado', inputs: 'código de cupón', errors: 'cupón inválido, vencido o repetido', acceptance: 'El total refleja el descuento correcto', edgeCases: 'Carrito vacío; múltiples cupones', decisions: { combinable: 'no', expired: 'reject', taxOrder: 'before_tax', persistCoupons: 'yes' } });
 console.log(`${d.id} → ${d.status}\n${d.rules.map((r) => `  - ${r}`).join('\n')}`);
 
 step(3, 'Aprobación humana (simulada explícitamente para esta demo)');

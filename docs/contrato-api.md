@@ -1,8 +1,8 @@
 # Contrato de API — SuckLess FrontEnd
 
-Versión: `1.0.0` (Etapa 0 · contratos y andamiaje)
+Versión: `1.1.0` (contrato integrado con el motor Node)
 
-Este documento une el **frontend futuro** (SSR BoxLang: `.bxm`/`.bxs`, vanilla JS en `assets/js/`) con el **backend pendiente** (`panel/server.js` hoy; servicio BoxLang mañana). Mientras el backend no expone estas rutas, `assets/js/api.js` con `USE_MOCK = true` sirve los JSON de `/mock`. Al conectar el backend, se cambia la bandera a `false` y solo se ajustan rutas, sin tocar módulos de UI.
+Este documento define el contrato entre el frontend SSR BoxLang (`.bxm`/`.bxs`, vanilla JS en `assets/js/`) y el backend Node (`panel/server.js`). Las rutas tienen handlers en `panel/routes/`; `data-suckless-demo` controla el modo por vista. Requirements Gate ya conecta con el API real y su entrevista se validó visualmente hasta el estado listo para revisión; las demás vistas siguen en modo demo mientras se completan sus smoke tests.
 
 ---
 
@@ -38,7 +38,7 @@ Códigos y mapeo HTTP esperado:
 | `NOT_FOUND` | `404` | Recurso de historia/análisis/ejecución no existe. |
 | `VALIDATION` | `400` | Payload mal formado o campo obligatorio ausente. |
 | `OVERSIZED_BODY` | `413` | Cuerpo supera `MAX_BODY` (backend) o límite de caracteres (frontend). |
-| `UPSTREAM_5XX` | `502` | Fallo transitario de un proveedor (IA, ejecutor) aguas abajo. |
+| `UPSTREAM_5XX` | `502` o `503` | Fallo transitorio o límite de concurrencia del ejecutor. |
 | `INTERNAL` | `500` | Error no clasificado del servidor. |
 
 ### 1.3 Regla visual PASS/FAIL
@@ -46,7 +46,7 @@ Códigos y mapeo HTTP esperado:
 La fuente de verdad del badge es el campo `status`. NO lo altera ningún texto generado por IA. Los valores posibles del ejecutor:
 
 ```
-PASS · FAIL · ERROR
+PASS · FAIL · EXECUTOR_ERROR
 ```
 
 Para otros módulos, un enum propio.
@@ -61,7 +61,7 @@ Para otros módulos, un enum propio.
 
 ## 2. Endpoints
 
-> **Estado:** propuesta. No están implementados en `panel/server.js`. Los mocks de `/mock` son la única fuente de datos hoy.
+> **Estado:** implementados en `panel/routes/` y despachados por `panel/server.js`. El modo demo sigue siendo el default para las vistas no validadas; Requirements Gate usa el API real.
 
 ### 2.1 `POST /api/requirements/analyze`
 
@@ -70,31 +70,36 @@ Recibe el texto libre del requerimiento, devuelve la entrevista sugerida.
 **Request**
 
 ```json
-{ "text": "El carrito debe aplicar descuentos" }
+{
+  "text": "El carrito debe aplicar descuentos",
+  "id": "REQ-a1b2c3",
+  "answers": { "actor": { "answered": true, "answer": "Persona compradora" } }
+}
 ```
 
 | Campo | Tipo | Validación |
 |---|---|---|
-| `text` | string | `1–5000` chars (mín. 1 tras trim). |
+| `text` | string | `1–5000` caracteres tras trim. En una reentrevista, se vuelve a enviar el texto junto con el ID estable. |
+| `id` | string·opcional | `REQ-` + seis caracteres hexadecimales; se usa para actualizar el mismo requisito. Si se omite, crea uno nuevo. |
+| `answers` | object·opcional | Respuestas con clave igual a `questions[].id`; cada valor es una cadena o `{ answered, answer }`. |
 
 **Response 200**
 
 ```json
 {
-  "id": "req_01J8Z3F0Y9Q2GBD9X3V5Q8N7B2",
+  "id": "REQ-a1b2c3",
   "status": "INCOMPLETE",
   "questions": [
     {
-      "id": "q_scope_discount",
-      "text": "¿Los descuentos se acumulan con coupons?",
+      "id": "actor",
+      "text": "¿Quién usa esta función (actor)?",
       "category": "business",
       "answered": false,
       "answer": null,
-      "type": "choice",
-      "options": { "yes": "Sí, se acumulan", "no": "No, son mutuamente excluyentes" }
+      "type": "input"
     }
   ],
-  "missingFields": ["scope_discount", "percentages", "coupon_policy"],
+  "missingFields": ["actor", "expectedBehavior", "inputs", "errors", "acceptance", "edgeCases"],
   "document": {
     "objective": "El carrito aplica descuentos...",
     "actor": "Persona compradora",
@@ -117,12 +122,12 @@ Recibe el texto libre del requerimiento, devuelve la entrevista sugerida.
 |---|---|---|
 | `id` | string | ID estable del requisito. Sirve para `POST /api/requirements/approve` y para `POST /api/executor/run`. |
 | `status` | string | `INCOMPLETE` \| `READY_FOR_REVIEW` \| `APPROVED` |
-| `questions[]` | array | Preguntas ordenadas por prioridad (las más bloqueantes primero). |
-| `questions[].id` | string | Estable a lo largo de la entrevista. |
+| `questions[]` | array | Conjunto estable de preguntas aplicables a la entrevista, incluso después de responderlas. |
+| `questions[].id` | string | Campo del modelo o decisión de dominio; estable durante la entrevista. |
 | `questions[].text` / `.category` | string | category = `business` \| `technical` \| `scope` \| `acceptance`. |
 | `questions[].answered` / `.answer` | bool / string·null | Estado; el frontend no los recalcula. |
-| `missingFields[]` | array de strings | IDs de `questions[]` aún sin responder. |
-| `document` | object | Síntesis estructurada del requisito con claves **fijas**: `objective`, `actor`, `behavior`, `inputs`, `rules`, `errors`, `acceptanceCriteria`, `edgeCases`. Puede venir parcial (`null`/`[]`) si `status=INCOMPLETE`. **Obligatorios al aprobar:** `objective`, `acceptanceCriteria`, `edgeCases` — bloquean la aprobación si faltan. Los demás son opcionales. |
+| `missingFields[]` | array de strings | IDs de preguntas todavía pendientes; puede estar vacío aunque `questions[]` conserve el cuestionario y sus respuestas. Una respuesta actualiza el mismo requisito usando `id` en la próxima llamada. |
+| `document` | object | Síntesis estructurada del requisito con claves **fijas**: `objective`, `actor`, `behavior`, `inputs`, `rules`, `errors`, `acceptanceCriteria`, `edgeCases`. Puede venir parcial (`null`/`[]`) si `status=INCOMPLETE`. `READY_FOR_REVIEW` requiere contestar las preguntas generadas por el Gate (incluidas decisiones de dominio o reglas); para aprobar también se validan `objective`, `acceptanceCriteria` y `edgeCases`. |
 
 ### 2.2 `POST /api/requirements/approve`
 
@@ -131,18 +136,27 @@ Registra la aprobación humana de un requisito. **Es la única vía para cambiar
 **Request**
 
 ```json
-{ "id": "req_01J8Z3F0Y9Q2GBD9X3V5Q8N7B2", "approvedBy": "Beatriz Fuentes" }
+{ "id": "REQ-a1b2c3", "approvedBy": "Beatriz Fuentes" }
 ```
 
 **Response 200**
 
 ```json
 {
-  "id": "req_01J8Z3F0Y9Q2GBD9X3V5Q8N7B2",
+  "id": "REQ-a1b2c3",
   "status": "APPROVED",
   "approvedAt": "2026-10-10T14:05:12Z",
   "approvedBy": "Beatriz Fuentes",
-  "document": { "title": "Descuentos en el carrito", "objective": "..." }
+  "document": {
+    "objective": "El carrito debe aplicar descuentos",
+    "actor": "Persona compradora",
+    "behavior": "Aplica el cupón al carrito",
+    "inputs": ["Código de cupón"],
+    "rules": [],
+    "errors": ["Cupón vencido"],
+    "acceptanceCriteria": ["El total aplica el descuento"],
+    "edgeCases": ["Carrito vacío"]
+  }
 }
 ```
 
@@ -151,7 +165,18 @@ Registra la aprobación humana de un requisito. **Es la única vía para cambiar
 **Errores típicos**
 
 - `404 NOT_FOUND` si el id no existe.
-- `400 VALIDATION` si `approvedBy` viene vacío (short ≤ 1 char tras trim) o si el requisito ya está aprobado.
+- `400 VALIDATION` si `approvedBy` tiene menos de dos caracteres tras trim, si el requisito aún está incompleto o si ya está aprobado.
+
+### `GET /api/requirements`
+
+Lista requisitos persistidos, separado del historial de análisis. El selector del Executor y Two Doors consume este endpoint.
+
+```json
+[{ "id": "REQ-a1b2c3", "type": "requirements", "title": "El carrito debe aplicar descuentos",
+   "status": "APPROVED", "createdAt": "2026-10-10T14:05:12.000Z", "approvedBy": "Equipo QA" }]
+```
+
+`status` usa `INCOMPLETE` \| `READY_FOR_REVIEW` \| `APPROVED`. Devuelve `[]` si no hay requisitos.
 
 ### 2.3 `POST /api/debug/analyze`
 
@@ -162,7 +187,7 @@ Recibe un log o stack-trace crudo. Devuelve hipótesis con evidencia (archivo + 
 ```json
 {
   "log": "TypeError: Cannot read properties of undefined (reading 'find')\n    at addItem (cart.js:27)",
-  "requirementId": "req_01J8Z3F0Y9Q2GBD9X3V5Q8N7B2"
+  "requirementId": "REQ-a1b2c3"
 }
 ```
 
@@ -235,7 +260,7 @@ Ejecuta los checks definidos en el backend contra una versión del código (la b
 }
 ```
 
-**Mismo shape en `GET /api/executor/run/{id}`** — cada respuesta trae el `status` global y **todos** los `checks[]` acumulados hasta el momento; el frontend no depende de eventos parciales.
+**Mismo shape en `GET /api/executor/run/{id}`** — cada respuesta trae el `status` global y todos los `checks[]` disponibles hasta el momento; no depende de eventos parciales.
 
 | Campo | Tipo | Descripción |
 |---|---|---|
@@ -262,8 +287,8 @@ Reconsulta una corrida. **Es el endpoint del polling en vivo**: el frontend lo c
   "target": "both",
   "requirementId": null,
   "checks": [
-    { "name": "BASE-FRESH-LOAD", "status": "PASS", "durationMs": 142, "error": null },
-    { "name": "DISCOUNT-10", "status": "RUNNING", "durationMs": null, "error": null }
+    { "name": "buggy:BASE-FRESH-LOAD", "status": "PASS", "durationMs": 142, "error": null },
+    { "name": "buggy:DISCOUNT-10", "status": "RUNNING", "durationMs": null, "error": null }
   ],
   "summary": { "pass": 1, "fail": 0, "error": 0 },
   "durationMs": 1420,
@@ -282,7 +307,7 @@ Reconsulta una corrida. **Es el endpoint del polling en vivo**: el frontend lo c
   "target": "both",
   "requirementId": null,
   "checks": [
-    { "name": "BASE-FRESH-LOAD", "status": "FAIL", "durationMs": 142,
+    { "name": "buggy:BASE-FRESH-LOAD", "status": "EXECUTOR_ERROR", "durationMs": 142,
       "error": "TypeError: Cannot read properties of undefined (reading 'find') at addItem (cart.js:27)" },
     { "name": "DISCOUNT-10", "status": "PASS", "durationMs": 52, "error": null },
     { "name": "COUPON-EXCLUSIVE", "status": "FAIL", "durationMs": 61,
@@ -308,12 +333,18 @@ Reconsulta una corrida. **Es el endpoint del polling en vivo**: el frontend lo c
 
 **Reglas de negocio del polling (para backend y frontend):**
 
-- Cada respuesta trae el `status` global y **todos** los `checks[]` acumulados; el frontend re-renderiza la lista completa en cada ciclo (no hay eventos incrementales ni estado parcial que reconstruir).
-- El `status` global solo es `PASS` cuando **todos** los checks están en `PASS`. Si hay **un** check en `FAIL` o `EXECUTOR_ERROR`, el global es `FAIL`/`EXECUTOR_ERROR`. El frontend nunca calcula el global por su cuenta.
+- Cada respuesta trae el `status` global y todos los checks disponibles; el frontend re-renderiza la lista completa en cada ciclo.
+- El `status` global solo es `PASS` cuando todos los checks de todos los targets ejecutados están en `PASS`. Si hay un check en `FAIL`, el global es `FAIL`; si el runner falla o no puede ejecutar, es `EXECUTOR_ERROR`. El frontend nunca calcula el global por su cuenta.
+- Mientras el proceso hijo ejecuta las pruebas, el snapshot puede tener `checks: []`; no se inventan estados parciales. Al completarse, aparecen los checks con sus resultados reales.
+- El runner asíncrono puede devolver `checks: []` mientras el proceso hijo está corriendo. No se fabrican estados parciales: al completarse, cada check aparece con el resultado real.
 - `durationMs` es `null` mientras corre y el total real al terminar.
 - El frontend detiene el polling al llegar a estado terminal, tras un límite de 2 minutos, o al pulsar cancelar (cancelar = dejar de consultar, no interrumpe el backend).
 - `aiInterpretation` es opcional y siempre llega en el campo dedicado; el frontend lo muestra en el panel "Interpretación de la IA (no determina el resultado)", nunca junto al badge.
 - `trace.steps` y `screenshots` pueden venir vacíos en checks de Node (el MVP no usa Playwright); ambas son opcionales.
+
+### 2.5.1 `GET /api/executor/run/latest`
+
+Devuelve el último run persistido para el dashboard con el mismo shape de snapshot. `404 NOT_FOUND` si todavía no hay corridas. Esta ruta no sustituye `GET /api/history`.
 
 ### 2.6 `POST /api/code/explain`
 
@@ -409,27 +440,23 @@ Revisa código y produce hallazgos con evidencia, impacto, recomendación y patc
 ```json
 [
   {
-    "id": "hist_01J8Z3F0Y9Q2GBD9X3V5Q8N7B2",
+    "id": "42",
     "type": "verify",
     "title": "Cupón -10% · versión buggy",
     "status": "FAIL",
+    "summary": "buggy: 2 PASS, 1 FAIL, 1 ERROR",
     "createdAt": "2026-10-10T14:03:00Z"
   }
 ]
 ```
 
 - Array vacío `[]` cuando no hay historial — el frontend lo detecta por `Array.isArray && length === 0` y pinta el empty-state.
-- El `status` sigue los enums de cada módulo (`PASS/FAIL/ERROR` para verify; dedicados para los demás); el frontend lo usa para el chip, no lo interpreta.
+- `id` se devuelve como string opaco, aunque el almacenamiento local asigna enteros.
+- `status` sigue los enums externos (`PASS`/`FAIL`/`EXECUTOR_ERROR` para verify; los demás módulos tienen enums propios), no los estados internos en español.
 
 ### 2.9 `GET /api/history/{id}`
 
-Detalle completo de un análisis. El shape depende del `type`:
-
-- `verify` → shape de `2.4` (un run).
-- `debug` → shape de `2.3`.
-- `review` → shape de `2.7`.
-- `explain` → shape de `2.6`.
-- `requirements` → shape de `2.1` (con `status` ya actualizado).
+Detalle persistido de un análisis. La respuesta común es `{ id, type, title, status, summary, createdAt, report, data, artifacts }`. `data` contiene los datos serializados del motor; no es la misma forma que la respuesta inmediata de creación. El status se normaliza al enum público, por ejemplo `FALLA → FAIL`, `APROBADO → APPROVED` y `HIPOTESIS → HYPOTHESIS`.
 
 - `404 NOT_FOUND` si el id no existe.
 
@@ -440,16 +467,16 @@ Elimina un análisis (y sus datos asociados: trace, screenshots, reporte). **Req
 **Response 200**
 
 ```json
-{ "deleted": true, "id": "hist_01J8Z3F0Y9Q2GBD9X3V5Q8N7B2" }
+{ "deleted": true, "id": "42" }
 ```
 
-- `404` si el id no existe (idempotente: un segundo DELETE sobre el mismo id podría ser 404 o `{ deleted: false }`; definir en backend).
+- `404 NOT_FOUND` si el id no existe; la UI solicita confirmación antes de borrar.
 
 ### 2.11 `GET /api/history/{id}/export`
 
 Descarga el reporte Markdown listo para pegar en GitHub/Jira.
 
-- `200` con `Content-Type: text/markdown; charset=utf-8` (fijar también `Content-Disposition: attachment; filename="<id>.md"`). El frontend toma el `Blob` y dispara el download, sin parsear JSON.
+- `200` con `Content-Type: text/markdown; charset=utf-8` y `Content-Disposition: attachment; filename="<id>.md"`. El frontend consume el texto crudo, sin parsear JSON.
 
 Errores:
 - `404 NOT_FOUND` si el id no existe.
@@ -465,14 +492,15 @@ import { api } from './api.js';
 const doc = await api('/api/requirements/analyze', { method: 'POST', body: { text: '...' } });
 ```
 
-### 3.1 `USE_MOCK`
+### 3.1 Modo mock/real
 
-- `true` **por defecto en Etapa 0**: todas las llamadas se resuelven con los JSON de `/mock` (con delay jitter 150–600 ms para simular latencia).
-- `false`: hace `fetch` real contra las rutas del contrato.
+- El modo demo permanece activo por defecto. `assets/js/api.js` lee el atributo `data-suckless-demo` de `<html>`; solo `data-suckless-demo="false"` activa llamadas reales.
+- El cliente deriva localhost:4173 cuando el frontend está en localhost:8083. Para otros despliegues se puede fijar `globalThis.SUCKLESS_API_BASE` antes de cargar los módulos.
+- El backend permite CORS únicamente desde `http://localhost:8083` y `http://127.0.0.1:8083` por defecto. Configure `SUCKLESS_FRONTEND_ORIGINS` con orígenes explícitos si hace falta.
 
 ```js
-// assets/js/api.js
-export const USE_MOCK = true;
+// Cada vista selecciona explícitamente el modo según su smoke test.
+<html data-suckless-demo="true">
 ```
 
 El módulo resuelve el mock por (method + path), buscando **el mock más específico por ruta**. Si la llamada no tiene mock, lanza `ApiError { code: 'NOT_FOUND', message: 'No hay mock para <ruta>' }` — así el frontend descubre huecos del contrato sin fallar silenciosamente.
@@ -540,7 +568,9 @@ El módulo de UI llama `wrap()` y renderiza según el patrón:
 | `POST /api/requirements/approve` | `mock/requirements-approve.ok.json` (status APPROVED + document completo), `mock/requirements-approve.error.json` (404/validación). |
 | `POST /api/debug/analyze` | `mock/debug-analyze.ok.json` (hipótesis con evidencia archivo+líneas), `mock/debug-analyze.empty.json` (sin hipótesis), `mock/debug-analyze.500.json`, `mock/debug-analyze.validation.json`. |
 | `POST /api/executor/run` | `mock/executor-run.queued.json` (QUEUED inicial; el mock lo devuelve), `mock/executor-run.ok.json` (FAIL real 3/4/1 con trace.steps, screenshots y aiInterpretation), `mock/executor-run.empty.json` (PASS sin checks), `mock/executor-run.500.json`. |
-| `GET /api/executor/run/{id}` | **Ciclo simulado de polling:** 1.º GET → `executor-run.running.json` (RUNNING, checks acumulados parcialmente), 2.º GET y siguientes → `executor-run.ok.json` (FAIL terminal). Esto permite desarrollar y probar `pollRun()` sin backend. Excepción: id terminado en `404` → `mock/executor-run.get.404.json`. |
+| `GET /api/executor/run/{id}` | **Ciclo simulado de polling:** primer GET → `executor-run.running.json`, siguientes → `executor-run.ok.json`. Excepción: id terminado en `404` → `mock/executor-run.get.404.json`. |
+| `GET /api/executor/run/latest` | `mock/executor-run.ok.json`. |
+| `GET /api/requirements` | `mock/requirements-list.json`. |
 | `POST /api/code/explain` | `mock/code-explain.ok.json` (steps[{text,file,lines}]), `mock/code-explain.404.json` (símbolo inexistente). |
 | `POST /api/code/review` | `mock/code-review.ok.json` (ALTA/MEDIA/BAJA, category, patch {format,language,content}, proven), `mock/code-review.empty.json` (0 hallazgos), `mock/code-review.no-patch.json` (hallazgo sin file/lines/patch: la tarjeta se muestra igual), `mock/code-review.500.json`. |
 | `GET /api/history?type=` | `mock/history.ok.json` (varios tipos), `mock/history.empty.json` []. |

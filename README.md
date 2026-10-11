@@ -18,22 +18,23 @@ El repositorio reúne dos partes complementarias:
 
 La separación entre `prompts/` y `kit/prompts/` es intencional: el primer directorio contiene el prompt de la aplicación BoxLang; el segundo contiene instrucciones para los agentes que operan sobre el motor Node.
 
-## Frontend (Etapas 0–1 · contratos, andamiaje y sistema de diseño)
+## Frontend y API (SSR BoxLang + Node)
 
 La nueva interfaz se construye con plantillas SSR de BoxLang (`.bxm`/`.bxs`) y JS vanilla, **sin framework ni CDN**, con la identidad visual del *Futuristic Cyberpunk Dashboard* ([prompts/design guide.md](prompts/design guide.md)). Está desacoplada del backend mediante contratos y mocks:
 
 | Pieza | Ruta | Descripción |
 |---|---|---|
-| Contrato de API | [docs/contrato-api.md](docs/contrato-api.md) | Endpoints propuestos, shapes, códigos de error y convenciones. |
+| Contrato de API | [docs/contrato-api.md](docs/contrato-api.md) | Endpoints implementados, shapes, códigos de error y convenciones. |
 | Mocks | [mock/](mock/) | JSON para cada endpoint: éxito, vacío, 500, 404, timeout. |
-| Capa de datos | [assets/js/api.js](assets/js/api.js) | Único punto de fetch. `USE_MOCK=true` sirve mocks; `false` llama al backend real. Provee `api()`, `wrap()`, `pollRun()` y `ApiError` uniformes. |
+| Capa de datos | [assets/js/api.js](assets/js/api.js) | Único punto de fetch. Demo activa mocks por defecto; `data-suckless-demo="false"` usa el backend real. Provee `api()`, `wrap()`, `pollRun()` y `ApiError` uniformes. |
+| API local | [panel/server.js](panel/server.js) | Servidor loopback en `127.0.0.1:4173`; handlers por dominio en `panel/routes/`, con CORS explícito para SSR local. |
 | Tokens | [assets/css/tokens.css](assets/css/tokens.css) | Paleta cyberpunk §3.1 + `@font-face` de las 3 fuentes variables vendorizadas. |
 | Base | [assets/css/base.css](assets/css/base.css) | Reset, tipografía, foco cian, contenedor 1280 px, reveal y `prefers-reduced-motion`. |
 | Componentes | [assets/css/components/](assets/css/components/) | 14 módulos: card, button, badge, kpi, nav, table, tabs, accordion, modal, toast, form, dropzone, skeleton, empty-state, stepper, code-view, demo-banner. |
 | Layout SSR | [views/](views/) | `layouts/base.bxm` + partials (nav, badge, toast, modal, empty-state, kpi-card, demo-banner) y `ui-kit.bxm`. |
 | UI JS | [assets/js/ui/](assets/js/ui/) | `particles`, `modal`, `toast`, `reveal` (vanilla, ES modules, accesibles). |
 
-Con `USE_MOCK = true`, **cada módulo del frontend puede desarrollarse y probarse sin backend**. Al existir el backend real, se cambia la bandera a `false` y —si las rutas del contrato coinciden— nada más.
+El modo demo sigue activo en las vistas que aún no han pasado un smoke test con el API. Requirements Gate (`views/requirements-index.bxm`) ya usa el backend real: el recorrido de entrevista y guardado hasta `LISTO PARA REVISAR` se validó contra el servidor actualizado. Para probarlo, inicia el API (`npm run panel`) en `127.0.0.1:4173` y el servidor SSR BoxLang en el puerto 8083. Si usas otro puerto, establece `globalThis.SUCKLESS_API_BASE` antes de cargar los módulos. El flujo visual de aprobación requiere confirmación humana; la aprobación y el endpoint se verifican además en las pruebas HTTP.
 
 Verificaciones ya ejecutadas en la Etapa 1:
 
@@ -70,6 +71,7 @@ npm run panel
 ```
 
 El panel escucha en `http://127.0.0.1:4173`.
+El origen SSR `http://localhost:8083` y `http://127.0.0.1:8083` está autorizado por CORS. Para un origen de presentación diferente, establece `SUCKLESS_FRONTEND_ORIGINS` como lista de orígenes explícitos (sin comodín `*`).
 
 ### CLI del motor
 
@@ -124,16 +126,16 @@ config/             Configuración del módulo bx-ai para OpenAI y Ollama
 demo-store/         Mini tienda con fallos sembrados y sus checks
 demo-store-fixed/   Referencia corregida para la comparación
 docs/               arquitectura + contrato-api.md (contratos Etapa 0)
-engine/             CLI y núcleo Node: requisitos, runner, debug y review
+engine/             CLI y núcleo Node: requisitos, runner síncrono/asíncrono, debug y review
 examples/           Requerimientos de ejemplo para la entrevista
 kit/                Prompts y criterios de revisión del motor Node
 mock/               JSON de mocks para todos los endpoints del contrato
-panel/              Servidor local e interfaz de evidencias (monolítica, pre-Etapa 0)
+panel/              API local, handlers por dominio e interfaz de evidencias
 prompts/            Prompt del Requirement Gate de BoxLang + design guide.md
 schemas/            Esquema de respuesta estructurada de BoxLang AI
 scripts/            Demo guiada
 src/                Aplicación Requirement Gate de BoxLang
-test/               Pruebas del motor Node
+test/               Pruebas del motor y de los endpoints HTTP
 ```
 
 ## Alcance y estado

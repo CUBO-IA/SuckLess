@@ -12,7 +12,7 @@ const sections = {
     const list = (a) => (a.length ? a.map((x) => `- ${x}`).join('\n') : '_(pendiente)_');
     return [
       `**Objetivo:** ${d.objective}`, `**Actor:** ${d.actor || '_(pendiente)_'}`, `**Comportamiento esperado:** ${d.expectedBehavior || '_(pendiente)_'}`,
-      `### Datos de entrada\n${list(d.inputs)}`, `### Reglas acordadas\n${list(d.rules)}`, `### Errores y casos límite\n${list(d.errors)}`, `### Criterios de aceptación\n${list(d.acceptance)}`,
+      `### Datos de entrada\n${list(d.inputs)}`, `### Reglas acordadas\n${list(d.rules)}`, `### Errores\n${list(d.errors)}`, `### Criterios de aceptación\n${list(d.acceptance)}`, `### Casos límite\n${list(d.edgeCases ?? [])}`,
       d.questions?.length ? `### Preguntas pendientes\n${d.questions.map((q) => `- ${q.text}`).join('\n')}` : '',
       d.approval ? `**Aprobado por:** ${d.approval.by} (${d.approval.at})\n\nHash del contenido aprobado: \`${d.approval.hash.slice(0, 16)}…\`` : '**Sin aprobación humana todavía: no se generan pruebas.**',
     ].filter(Boolean).join('\n\n');

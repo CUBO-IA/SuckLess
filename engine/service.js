@@ -2,7 +2,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { BASE_CHECKS, DATA_DIR, ROOT, TARGETS, ensureDir, isInside, nowIso, relPath } from './util.js';
-import { runChecks } from './runner.js';
+import { runChecks, runChecksAsync } from './runner.js';
 import { attachFixVerification, attachReproduction, diagnose } from './debug.js';
 import { explainSymbol } from './explain.js';
 import { markDemonstrated, reviewFiles } from './review.js';
@@ -40,6 +40,28 @@ export function runVerify({ reqId = null, target = 'both' } = {}) {
     data: { reqId, runs },
   };
   const artifacts = first.results.filter((r) => r.error).map((r) => ({ kind: 'trace', name: r.id, content: r.error.stack }));
+  return { ...persist(rec, artifacts), runs };
+}
+
+export async function runVerifyAsync({ reqId = null, target = 'both' } = {}) {
+  const files = checkFiles(reqId);
+  const targets = target === 'both' ? ['buggy', 'fixed'] : [target];
+  const runs = [];
+  for (const t of targets) runs.push(await runChecksAsync({ files, target: t }));
+  const first = runs[0];
+  const bad = first.summary.fail + first.summary.error;
+  const rec = {
+    type: 'verify',
+    title: `Verificación${reqId ? ` de ${reqId}` : ' base'} (${targets.join(' + ')})`,
+    status: first.runnerError ? 'ERROR_DE_EJECUCION' : bad ? 'FALLA' : 'OK',
+    summary: `${targets[0]}: ${first.summary.pass} PASS, ${first.summary.fail} FAIL, ${first.summary.error} ERROR${runs[1] ? ` · ${targets[1]}: ${runs[1].summary.pass}/${runs[1].summary.total} PASS` : ''}`,
+    data: { reqId, runs },
+  };
+  const artifacts = runs.flatMap((run) => run.results.filter((r) => r.error).map((r) => ({
+    kind: 'trace',
+    name: `${run.target}:${r.id}`,
+    content: r.error.stack,
+  })));
   return { ...persist(rec, artifacts), runs };
 }
 
