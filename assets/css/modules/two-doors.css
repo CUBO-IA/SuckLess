@@ -1,0 +1,58 @@
+/* SuckLess · modules/two-doors.css — Módulo Two Doors (Etapa 3) */
+
+/* Puertas grandes, tipo tarjeta, con acento de identidad visual (cian/magenta
+   son MARCA, nunca indican resultado de prueba — §3.2). */
+.two-door {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  margin-top: 20px;
+}
+.two-door__head { text-align: center; padding: 24px 0 8px; }
+.two-door__head .hero__sub { max-width: 40rem; margin-inline: auto; }
+.door-debug .two-door__head h1 { color: var(--cyan-bright); }
+.door-verify .two-door__head h1 { color: var(--magenta-bright); }
+
+/* Tabs del selector de modo (más grandes y prominentes que las normales) */
+.two-doors__tabs { justify-content: center; margin-bottom: 8px; }
+.two-doors__tabs .tab { font-family: var(--font-display); padding: 12px 22px; letter-spacing: 0.06em; }
+
+/* Acciones */
+.two-doors__actions { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.two-doors__actions .minor { margin: 0; color: var(--text-secondary); }
+
+/* Lista de hipótesis: ordenada, cada una etiquetada HIPÓTESIS · PENDIENTE DE PROBAR */
+.two-doors__hyp-list {
+  list-style: none;
+  counter-reset: hyp;
+  margin: 18px 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.two-doors__hyp { position: relative; padding-top: 14px; }
+.two-doors__hyp-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--font-display);
+  font-size: 0.9rem;
+  margin: 0 0 6px;
+  color: var(--text-primary);
+}
+.two-doors__hyp .ai-tag { display: inline-block; margin-bottom: 8px; max-width: 100%; font-size: 0.66rem; }
+.two-doors__evidence { display: flex; align-items: center; gap: 8px; margin: 8px 0 4px; flex-wrap: wrap; }
+.two-doors__evidence code { color: var(--cyan-bright); font-size: 0.8rem; }
+.two-doors__hyp pre { max-height: 180px; overflow: auto; font-size: 0.78rem; margin: 0 0 10px; }
+.two-doors__hyp .btn--sm { margin-top: 6px; }
+
+/* En pestañas/tab inactivas */
+.two-door[hidden] { display: none; }
+
+/* Accesibilidad: el foco del dropzone levanta el borde cian */
+.dropzone:focus-visible { outline: none; border-color: var(--cyan-bright); box-shadow: 0 0 0 3px rgba(34, 211, 238, 0.28); }
+/* Toast de dropzone rechazado parpadeo cámara reducida: sin animaciones agresivas */
+@media (prefers-reduced-motion: reduce) {
+  .dropzone.is-rejected { animation: none; }
+}

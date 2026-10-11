@@ -1,0 +1,15 @@
+<!--
+  SuckLess · views/two-doors-index.bxm — Página Two Doors (Etapa 3).
+  Wrapper del layout base, igual patrón que index.bxm del dashboard.
+  ?mode=debug|verify llega desde la URL y alimenta SSR + cliente.
+-->
+<bx:set pageTitle = "Two Doors" />
+<bx:set activeNav = "two-doors" />
+<bx:set useMock = true />
+<bx:set mode = URL.mode ?: 'debug' />
+
+<bx:savecontent variable="pageContent">
+  <bx:include template="two-doors.bxm" />
+</bx:savecontent>
+
+<bx:include template="layouts/base.bxm" />
