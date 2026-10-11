@@ -5,13 +5,13 @@
         "provider": "ollama",
         "timeout": 300,
         "defaultParams": {
-          "model": "qwen3:4b",
+          "model": "qwen3:4b-instruct",
           "temperature": 0.1
         },
         "providers": {
           "ollama": {
             "params": {
-              "model": "qwen3:4b"
+              "model": "qwen3:4b-instruct"
             },
             "options": {
               "baseUrl": "http://localhost:11434"

@@ -181,9 +181,22 @@ for ( round = 1; round <= maxRounds; round++ ) {
     println( "" );
     println( "Evaluando requerimiento..." );
 
-    evaluation = normalizeEvaluation(
-        evaluateRequirement( requirement, interviewHistory )
-    );
+    try {
+        evaluation = normalizeEvaluation(
+            evaluateRequirement( requirement, interviewHistory )
+        );
+    } catch ( any error ) {
+        println( "" );
+        println( "No fue posible obtener una respuesta del proveedor de IA." );
+
+        if ( error.message.findNoCase( "Request Timeout" ) ) {
+            println( "Ollama tardó demasiado. Verifica que esté activo y vuelve a intentarlo." );
+        } else {
+            println( "Detalle: #error.message#" );
+        }
+
+        CLIExit( 2 );
+    }
 
     println( "Estado: #evaluation.status#" );
     println( "Puntaje: #evaluation.score#/100" );

@@ -59,7 +59,7 @@ Ollama permite ejecutar SuckLess sin una API key ni créditos de OpenAI.
 2. Descarga el modelo recomendado para este proyecto:
 
 ```bash
-ollama pull qwen3:4b
+ollama pull qwen3:4b-instruct
 ```
 
 3. Comprueba que Ollama esté activo:
@@ -74,8 +74,9 @@ ollama list
 boxlang --bx-config config/boxlang.ollama.json src/SuckLess.bxs
 ```
 
-La primera descarga ocupa aproximadamente 2.5 GB. Si el equipo tiene poca
-memoria, cambia `qwen3:4b` por `qwen3:1.7b` en
+La primera descarga ocupa aproximadamente 2.5 GB. La variante `instruct`
+responde directamente y evita el razonamiento prolongado del modelo base. Si
+el equipo tiene poca memoria, cambia `qwen3:4b-instruct` por `qwen3:1.7b` en
 `config/boxlang.ollama.json` y descarga ese modelo en su lugar.
 
 La aplicación entrevista al usuario hasta completar el requerimiento y guarda el resultado en `output/`.
