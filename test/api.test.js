@@ -126,7 +126,7 @@ test('API HTTP: both targets never report PASS when the buggy target fails', asy
   });
 });
 
-test('API HTTP: adapters return contract shapes and errors use the uniform envelope', async () => {
+test('API HTTP: Code routes return contract shapes and cite indexed source locations', async () => {
   await withServer(async (base) => {
     const files = await json(base, '/api/files');
     assert.ok(files.body.files.includes('demo-store/src/cart.js'));
@@ -138,7 +138,10 @@ test('API HTTP: adapters return contract shapes and errors use the uniform envel
       body: JSON.stringify({ symbol: 'addItem' }),
     });
     assert.equal(explain.body.status, 'OK');
-    assert.ok(explain.body.steps[0].lines[0] > 0);
+    assert.equal(explain.body.symbol, 'addItem');
+    assert.match(explain.body.summary, /demo-store\/src\/cart\.js:\d+-\d+, \d+ puntos de flujo/);
+    assert.ok(explain.body.steps.length > 0);
+    assert.ok(explain.body.steps.every((step) => step.text && step.file && step.lines[0] > 0 && step.lines[1] >= step.lines[0]));
 
     const review = await json(base, '/api/code/review', {
       method: 'POST',
@@ -147,6 +150,48 @@ test('API HTTP: adapters return contract shapes and errors use the uniform envel
     });
     assert.equal(review.body.status, 'FINDINGS');
     assert.ok(['ALTA', 'MEDIA', 'BAJA'].includes(review.body.findings[0].severity));
+    assert.ok(['LOGICA', 'SEGURIDAD', 'CALIDAD'].includes(review.body.findings[0].category));
+    assert.ok(review.body.findings.every((finding) => (
+      finding.id && finding.evidence && finding.impact && finding.recommendation
+      && typeof finding.proven === 'boolean'
+      && (finding.file === null || (finding.file && finding.lines[0] > 0 && finding.lines[1] >= finding.lines[0]))
+      && (finding.patch === null || (finding.patch.format && finding.patch.language && finding.patch.content))
+    )));
+  });
+});
+
+test('API HTTP: Code routes validate requests and map missing symbols to NOT_FOUND', async () => {
+  await withServer(async (base) => {
+    const invalidExplain = await json(base, '/api/code/explain', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ symbol: ' ' }),
+    });
+    assert.equal(invalidExplain.response.status, 400);
+    assert.equal(invalidExplain.body.error.code, 'VALIDATION');
+
+    const missingSymbol = await json(base, '/api/code/explain', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ symbol: 'notARealFunction' }),
+    });
+    assert.equal(missingSymbol.response.status, 404);
+    assert.equal(missingSymbol.body.error.code, 'NOT_FOUND');
+
+    for (const files of [[], Array(21).fill('demo-store/src/cart.js'), ['../panel/server.js']]) {
+      const invalidReview = await json(base, '/api/code/review', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ files }),
+      });
+      assert.equal(invalidReview.response.status, 400);
+      assert.equal(invalidReview.body.error.code, 'VALIDATION');
+    }
+  });
+});
+
+test('API HTTP: other adapters return contract shapes and errors use the uniform envelope', async () => {
+  await withServer(async (base) => {
 
     const debug = await json(base, '/api/debug/analyze', {
       method: 'POST',
