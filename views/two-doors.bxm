@@ -36,6 +36,24 @@
       <p class="hero__sub">Pega el log, el stack trace o describe el código que falla. Recibirás <strong>hipótesis con evidencia archivo:línea</strong>, nunca una causa confirmada.</p>
     </header>
 
+    <div class="two-door__highlights" aria-label="Qué incluye este flujo">
+      <article class="two-door__stat">
+        <span class="mono-label">01</span>
+        <h3>Contexto</h3>
+        <p>Log, stack trace y archivos con los que no estás seguro.</p>
+      </article>
+      <article class="two-door__stat">
+        <span class="mono-label">02</span>
+        <h3>Hipótesis</h3>
+        <p>Se obtienen posibilidades ordenadas con pruebas sugeridas.</p>
+      </article>
+      <article class="two-door__stat">
+        <span class="mono-label">03</span>
+        <h3>Verificación</h3>
+        <p>Se pasa a executor con evidencia para comprobar lo que sí es real.</p>
+      </article>
+    </div>
+
     <div class="card card--lg">
       <h2 class="card__title">Entrada</h2>
       <!-- Advertencia permanente de secretos (§1.2) -->
@@ -47,6 +65,11 @@
                   placeholder="TypeError: Cannot read properties of undefined (reading 'find')
     at addItem (cart.js:27)"
                   aria-describedby="debug-log-hint" required></textarea>
+        <div class="two-door__quick-actions" aria-label="Acciones rápidas de diagnóstico">
+          <button class="btn btn--ghost btn--sm" type="button" data-quick-log="error">Plantilla de error</button>
+          <button class="btn btn--ghost btn--sm" type="button" data-quick-log="network">Plantilla de red</button>
+          <button class="btn btn--ghost btn--sm" type="button" id="debug-clear" type="button">Borrar</button>
+        </div>
         <p class="hint" id="debug-log-hint">El contenido se trata como texto no confiable y se muestra tal cual, sin ejecutar.</p>
         <p class="field__error visually-hidden" id="debug-log-error" role="alert"></p>
       </div>
@@ -100,6 +123,24 @@
       <p class="hero__sub">Elige un <strong>requisito aprobado</strong> y los checks se ejecutarán de verdad. Sin requisito aprobado, el executor corre solo los checks base.</p>
     </header>
 
+    <div class="two-door__highlights two-door__highlights--verify" aria-label="Qué hace esta validación">
+      <article class="two-door__stat">
+        <span class="mono-label">A</span>
+        <h3>Requisito</h3>
+        <p>Empaqueta la intención aprobada antes de lanzar la prueba.</p>
+      </article>
+      <article class="two-door__stat">
+        <span class="mono-label">B</span>
+        <h3>Target</h3>
+        <p>Comparte buggy y fixed para validar el cambio real.</p>
+      </article>
+      <article class="two-door__stat">
+        <span class="mono-label">C</span>
+        <h3>Evidencia</h3>
+        <p>Se comprueba con checks concretos, no con suposiciones.</p>
+      </article>
+    </div>
+
     <div class="card card--lg">
       <h2 class="card__title">Entrada</h2>
       <div class="secret-warning"><div>Evita pegar secretos o credenciales en los identificadores de la app.</div></div>
@@ -124,6 +165,11 @@
         <label for="verify-app-id">Identificador o URL de la app demo (opcional)</label>
         <input class="input" type="text" id="verify-app-id" name="appIdentifier"
                placeholder="demo-store/carrito" aria-describedby="verify-app-hint" />
+        <div class="two-door__quick-actions" aria-label="Acciones rápidas de verificación">
+          <button class="btn btn--ghost btn--sm" type="button" data-verify-target="both">Antes + después</button>
+          <button class="btn btn--ghost btn--sm" type="button" data-verify-target="buggy">Buggy</button>
+          <button class="btn btn--ghost btn--sm" type="button" data-verify-target="fixed">Fixed</button>
+        </div>
         <p class="hint" id="verify-app-hint">No pegues URL con query-string que contengan tokens o claves.</p>
       </div>
 

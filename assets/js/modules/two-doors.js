@@ -32,6 +32,7 @@ function setChildren(node, children) { node.replaceChildren(...children); }
 // ---------------------------------------------------------------------------
 
 const MODES = ['debug', 'verify'];
+const DRAFT_KEY = 'suckless-two-doors-draft';
 
 function currentModeFromUrl() {
   const m = new URLSearchParams(location.search).get('mode');
@@ -66,6 +67,108 @@ function initTabs() {
       e.preventDefault();
       const next = tabs[(i + (e.key === 'ArrowRight' ? 1 : -1) + tabs.length) % tabs.length];
       activateMode(next.id.replace('tab-', ''));
+    });
+  });
+}
+
+function loadDrafts() {
+  try {
+    return JSON.parse(localStorage.getItem(DRAFT_KEY) || '{}');
+  } catch {
+    return {};
+  }
+}
+
+function saveDrafts(data) {
+  try {
+    localStorage.setItem(DRAFT_KEY, JSON.stringify(data));
+  } catch {
+    // no-op: storage no disponible o bloqueado.
+  }
+}
+
+function bindDraftAutosave() {
+  const logArea = el('#debug-log');
+  const appInput = el('#verify-app-id');
+  const reqSelect = el('#debug-reqid');
+  const verifyReq = el('#verify-reqid');
+  const targetSelect = el('#verify-target');
+  const draft = loadDrafts();
+
+  if (logArea) {
+    logArea.value = draft.debugLog || logArea.value;
+    logArea.addEventListener('input', () => {
+      const all = loadDrafts();
+      all.debugLog = logArea.value;
+      saveDrafts(all);
+    });
+  }
+
+  if (appInput) {
+    appInput.value = draft.verifyAppId || appInput.value;
+    appInput.addEventListener('input', () => {
+      const all = loadDrafts();
+      all.verifyAppId = appInput.value;
+      saveDrafts(all);
+    });
+  }
+
+  if (reqSelect) {
+    reqSelect.value = draft.debugReq || reqSelect.value;
+    reqSelect.addEventListener('change', () => {
+      const all = loadDrafts();
+      all.debugReq = reqSelect.value;
+      saveDrafts(all);
+    });
+  }
+
+  if (verifyReq) {
+    verifyReq.value = draft.verifyReq || verifyReq.value;
+    verifyReq.addEventListener('change', () => {
+      const all = loadDrafts();
+      all.verifyReq = verifyReq.value;
+      saveDrafts(all);
+    });
+  }
+
+  if (targetSelect) {
+    targetSelect.value = draft.verifyTarget || targetSelect.value;
+    targetSelect.addEventListener('change', () => {
+      const all = loadDrafts();
+      all.verifyTarget = targetSelect.value;
+      saveDrafts(all);
+    });
+  }
+}
+
+function bindTemplateButtons() {
+  const logArea = el('#debug-log');
+  document.querySelectorAll('[data-quick-log]').forEach((button) => {
+    button.addEventListener('click', () => {
+      if (!logArea) return;
+      const template = button.dataset.quickLog === 'network'
+        ? 'Failed to fetch http://localhost:3000/api/items\nTypeError: Failed to fetch\n    at fetchData (app.js:42)'
+        : 'TypeError: Cannot read properties of undefined (reading \"map\")\n    at renderList (app.js:18)\n    at loadPage (index.js:57)';
+      logArea.value = template;
+      logArea.dispatchEvent(new Event('input', { bubbles: true }));
+      logArea.focus();
+    });
+  });
+
+  const clearBtn = el('#debug-clear');
+  clearBtn?.addEventListener('click', () => {
+    if (!logArea) return;
+    logArea.value = '';
+    logArea.dispatchEvent(new Event('input', { bubbles: true }));
+    logArea.focus();
+  });
+
+  document.querySelectorAll('[data-verify-target]').forEach((button) => {
+    button.addEventListener('click', () => {
+      const select = el('#verify-target');
+      if (!select || !button.dataset.verifyTarget) return;
+      select.value = button.dataset.verifyTarget;
+      select.dispatchEvent(new Event('change', { bubbles: true }));
     });
   });
 }
@@ -142,10 +245,12 @@ function renderHypotheses(container, data) {
     container.append(tag('p', 'card__meta', 'No se identificaron hipótesis revisables en el log. Añade más contexto (pasos, archivo, versión) y reintenta.'));
     return;
   }
-  container.append(tag('div', 'summary__meta', '').append(
+  const summary = tag('div', 'summary__meta');
+  summary.append(
     tag('span', 'badge badge--warn', data.status === 'HYPOTHESIS' ? 'HIPÓTESIS · NIVEL DE EVIDENCIA' : data.status),
     tag('span', 'mono-label', `Ladder ${data.ladderLevel ?? 1}/3`),
-  ));
+  );
+  container.append(summary);
   if (data.logSummary) container.append(tag('p', 'card__meta', data.logSummary));
 
   const list = tag('ol', 'two-doors__hyp-list');
@@ -184,6 +289,7 @@ function renderHypotheses(container, data) {
   });
   container.append(list);
   container.hidden = false;
+  container.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
 function initDebugForm() {
@@ -209,6 +315,8 @@ function initDebugForm() {
       err.classList.add('visually-hidden');
     }
   });
+
+  bindTemplateButtons();
 
   // dropzone accesible
   initDropzone(el('#debug-dropzone'));
@@ -269,12 +377,15 @@ function initVerifyForm() {
     // intento con procedencia y avisamos Ever running (m Interrupt de mock).
     toastInfo('Solicitud registrada. La corrida real se lanzará desde el Executor (Etapa 5).');
     resultBox.hidden = false;
+    const cta = tag('a', 'btn btn--primary', 'Ir al Executor para ver checks en vivo');
+    cta.href = '/views/executor-index.bxm';
     setChildren(resultBox, [
       tag('h2', 'card__title', 'Resultado de la ejecución'),
       tag('p', 'provenance provenance--mock', 'Dato de ejemplo'),
       tag('p', 'card__meta', `target=${target}${reqId ? ` · requisito=${reqId.slice(0, 12)}…` : ' · checks base'}${appIdentifier ? ` · app=${appIdentifier}` : ''}`),
-      tag('a', 'btn btn--primary', 'Ir al Executor para ver checks en vivo').setAttribute('href', '/views/executor-index.bxm') && null,
+      cta,
     ]);
+    resultBox.scrollIntoView({ behavior: 'smooth', block: 'start' });
   });
 }
 
@@ -287,6 +398,7 @@ export function bootTwoDoors() {
   initTabs();
   // El SSR ya aplicó ?mode=; el cliente re-aplica en JS (sin recargar nada)
   activateMode(currentModeFromUrl(), { pushUrl: false });
+  bindDraftAutosave();
   populateRequirementSelects();
   initDebugForm();
   initVerifyForm();
