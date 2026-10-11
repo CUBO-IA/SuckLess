@@ -6,7 +6,7 @@
 
   Variables esperadas por el consumidor:
     pageTitle  (string) — título de la página
-    activeNav  (string) — clave de nav activa: dashboard|requirements|two-doors|executor|code|history|ui-kit
+    activeNav  (string) — clave de nav activa: dashboard|requirements|two-doors|executor|code|history
     useMock    (boolean) — true => banner MODO DEMO visible (Etapa 0: siempre true)
 -->
 <!-- El banner MODO DEMO vive en ../partials/demo-banner.bxm; la visibilidad la
@@ -57,8 +57,7 @@
 
     <main id="main-content" class="container" tabindex="-1">
         <!-- Slot de contenido de cada vista: si el consumidor definió
-             pageContent vía bx:savecontent, se imprime aquí; si no, el
-             consumidor self-contiene su contenido (como ui-kit.bxm). -->
+             pageContent vía bx:savecontent, se imprime aquí.             Etapa 8: /ui-kit retirado; el catálogo vive en docs/guia-ui.md. -->
         #( pageContent ?: '' )#
     </main>
 

@@ -33,17 +33,17 @@
     <li class="step step--current">
       <span class="step__badge">En curso</span>
       <span class="step__label">ACLARAR</span>
-      <a class="step__link" href="/views/requirements.bxm">Ir a Requirements →</a>
+      <a class="step__link" href="/views/requirements-index.bxm">Ir a Requirements →</a>
     </li>
     <li class="step">
       <span class="step__badge">Pendiente</span>
       <span class="step__label">DIAGNOSTICAR</span>
-      <a class="step__link" href="/views/two-doors.bxm?mode=debug">Ir a Two Doors →</a>
+      <a class="step__link" href="/views/two-doors-index.bxm?mode=debug">Ir a Two Doors →</a>
     </li>
     <li class="step">
       <span class="step__badge">Pendiente</span>
       <span class="step__label">PROBAR</span>
-      <a class="step__link" href="/views/executor.bxm">Ir al Executor →</a>
+      <a class="step__link" href="/views/executor-index.bxm">Ir al Executor →</a>
     </li>
     <li class="step">
       <span class="step__badge">Pendiente</span>
@@ -78,22 +78,22 @@
 <section aria-labelledby="modules-title" class="reveal">
   <h2 id="modules-title" class="card__title" style="margin-top:32px;">Módulos</h2>
   <div class="quick-grid">
-    <a class="card card--hover card--link" href="/views/requirements.bxm">
+    <a class="card card--hover card--link" href="/views/requirements-index.bxm">
       <h3 class="card__title"><span aria-hidden="true">◎</span> Requirements Gate</h3>
       <p class="card__meta">Convierte un requisito vago en una especificación con criterios de aceptación y aprobación humana.</p>
       <span class="provenance">Criterio: sin aprobación no hay verificación</span>
     </a>
-    <a class="card card--hover card--link" href="/views/two-doors.bxm">
+    <a class="card card--hover card--link" href="/views/two-doors-index.bxm">
       <h3 class="card__title"><span aria-hidden="true">⧉</span> Two Doors</h3>
       <p class="card__meta">Elige el modo: <em>ya tengo un error</em> (log · trace) o <em>quiero probar mi app</em> (requisito · criterios).</p>
       <span class="provenance">Entrada correcta desde el principio</span>
     </a>
-    <a class="card card--hover card--link" href="/views/executor.bxm">
+    <a class="card card--hover card--link" href="/views/executor-index.bxm">
       <h3 class="card__title"><span aria-hidden="true">▶</span> Executor</h3>
       <p class="card__meta">Lista de checks en vivo con POLLING, trazas y capturas. La fuente del badge es el ejecutor real.</p>
       <span class="provenance">Resultado ejecutado, no generado</span>
     </a>
-    <a class="card card--hover card--link" href="/views/code.bxm">
+    <a class="card card--hover card--link" href="/views/code-index.bxm">
       <h3 class="card__title"><span aria-hidden="true">▤</span> Code &amp; Review</h3>
       <p class="card__meta">Explica el flujo de una función y revisa hallazgos con evidencia archivo:línea y parches copiables.</p>
       <span class="provenance">Hallazgo demostrado ≠ sugerencia</span>
@@ -103,11 +103,7 @@
       <p class="card__meta">Recupera análisis previos, expórtalos a Markdown y borra datos obsoletos.</p>
       <span class="provenance">Evidencia reproducible</span>
     </a>
-    <a class="card card--hover card--link" href="/views/ui-kit.bxm">
-      <h3 class="card__title"><span aria-hidden="true">◫</span> UI Kit <span class="badge badge--idle">DESARROLLO</span></h3>
-      <p class="card__meta">Catálogo interno de componentes. Se retira antes de la entrega.</p>
-      <span class="provenance provenance--mock">Solo desarrollo</span>
-    </a>
+    <!-- Etapa 8: la tarjeta /ui-kit se retira con la entrega (catálogo solo-desarrollo) -->
   </div>
 </section>
 

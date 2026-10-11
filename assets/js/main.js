@@ -1,6 +1,6 @@
 /**
  * SuckLess · assets/js/main.js — Entry point de la UI base.
- * Rust - Import modulles ES5, sin build. Si el JS falla, la página sigue
+ * Vanilla ES modules, sin build. Si el JS falla, la página sigue
  * navegable y legible (progressive enhancement).
  */
 import { initParticles } from './ui/particles.js';
@@ -16,12 +16,20 @@ document.documentElement.classList.remove('no-js');
 
 initReveal();
 initParticles();
-boot();
-bootTwoDoors();
-bootRequirements();
-bootExecutor();
-bootCode();
-bootHistory();
+
+/** Etapa 8: cada módulo arranca aislado — un boot que lanza no deja la
+ *  pantalla en blanco; los módulos ya se autoprotegen por vista (comprueban
+ *  su selector raíz), esto cubre errores de importación/ejecución inesperados. */
+for (const [name, bootFn] of [
+  ['dashboard', boot],
+  ['two-doors', bootTwoDoors],
+  ['requirements', bootRequirements],
+  ['executor', bootExecutor],
+  ['code', bootCode],
+  ['history', bootHistory],
+]) {
+  try { bootFn(); } catch (e) { console.error(`[suckless] boot ${name} falló:`, e); }
+}
 
 // Toggle de navegación móvil (accesible con aria-expanded)
 const toggle = document.getElementById('nav-toggle');
