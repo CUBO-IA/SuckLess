@@ -1,0 +1,154 @@
+/**
+ * SuckLess — capa de agentes BoxLang AI (bx-ai).
+ *
+ * ESTADO: escrita contra la documentación de bx-ai (aiAgent / aiTool / agent.run).
+ * NO se ha ejecutado todavía en un runtime BoxLang: el núcleo verificado por tests es el
+ * motor Node (engine/). Esta capa solo orquesta ese motor mediante herramientas acotadas.
+ *
+ * Reglas de seguridad del diseño:
+ *  - Los agentes NO tienen una herramienta para aprobar requisitos (`req approve` está bloqueado aquí).
+ *  - PASS/FAIL lo decide el ejecutor del motor, nunca el modelo.
+ *  - Lista cerrada de subcomandos, ids y rutas validados antes de lanzar el proceso.
+ */
+
+// ---------------------------------------------------------------- configuración
+suckHome = len( getSystemSetting( "SUCKLESS_HOME", "" ) )
+	? getSystemSetting( "SUCKLESS_HOME" )
+	: createObject( "java", "java.io.File" ).init( getDirectoryFromPath( getCurrentTemplatePath() ) & ".." ).getCanonicalPath();
+
+ALLOWED = [ "req", "gen", "verify", "trace", "debug", "explain", "review", "history", "report" ];
+
+// ---------------------------------------------------------------- ejecutor acotado
+function runCli( required array args ) {
+	if ( !ALLOWED.contains( args[ 1 ] ) ) {
+		throw( type: "SuckLess.NotAllowed", message: "Subcomando no permitido: " & args[ 1 ] );
+	}
+	if ( args.len() >= 2 && args[ 1 ] == "req" && args[ 2 ] == "approve" ) {
+		throw( type: "SuckLess.NotAllowed", message: "Solo una persona puede aprobar un requisito (CLI o panel)." );
+	}
+	var cmd = [ "node", "--disable-warning=ExperimentalWarning", suckHome & "/engine/cli.js" ];
+	for ( var a in args ) {
+		cmd.append( toString( a ) );
+	}
+	var pb = createObject( "java", "java.lang.ProcessBuilder" ).init( cmd );
+	pb.directory( createObject( "java", "java.io.File" ).init( suckHome ) );
+	pb.redirectErrorStream( true );
+	var proc = pb.start();
+	var reader = createObject( "java", "java.io.BufferedReader" ).init(
+		createObject( "java", "java.io.InputStreamReader" ).init( proc.getInputStream(), "UTF-8" )
+	);
+	var out = [];
+	var line = reader.readLine();
+	while ( !isNull( line ) ) {
+		out.append( line );
+		line = reader.readLine();
+	}
+	proc.waitFor();
+	return out.toList( chr( 10 ) );
+}
+
+function requireId( required string id ) {
+	if ( !reFind( "^REQ-[a-f0-9]{6}$", id ) ) throw( type: "SuckLess.BadInput", message: "Id de requisito inválido: " & id );
+	return id;
+}
+function requireSymbol( required string s ) {
+	if ( !reFind( "^[A-Za-z_$][A-Za-z0-9_$]*$", s ) ) throw( type: "SuckLess.BadInput", message: "Nombre de función inválido." );
+	return s;
+}
+function requireFile( required string f ) {
+	if ( !reFind( "^demo-store(-fixed)?/src/[A-Za-z0-9_./-]+\.m?js$", f ) || f.find( ".." ) ) {
+		throw( type: "SuckLess.BadInput", message: "Solo se revisan archivos de demo-store/src o demo-store-fixed/src." );
+	}
+	return f;
+}
+function prompt( required string name ) {
+	return fileRead( suckHome & "/kit/prompts/" & name & ".md", "utf-8" );
+}
+
+// ---------------------------------------------------------------- herramientas (aiTool( name, description, callable ))
+reqStart = aiTool( "req_start", "Abre un requisito (texto del desarrollador) y devuelve las preguntas pendientes.",
+	( text ) => runCli( [ "req", "start", text ] )
+).describeText( "Requisito tal como lo dijo la persona, sin completarlo" );
+
+reqAnswer = aiTool( "req_answer",
+	"Registra UNA respuesta que la persona dio explícitamente. Nunca inventes respuestas. key: actor|behavior|input|error|criterion o una decisión (combinable, expired, taxOrder, persistCoupons).",
+	( id, key, value ) => {
+		requireId( id );
+		var flagMap = { actor: "--actor", behavior: "--behavior", input: "--input", error: "--error", criterion: "--criterion" };
+		return flagMap.keyExists( key )
+			? runCli( [ "req", "answer", id, flagMap[ key ], value ] )
+			: runCli( [ "req", "answer", id, "--set", key & "=" & value ] );
+	}
+).describeId( "Id del requisito, p. ej. REQ-1a2b3c" )
+ .describeKey( "Campo o decisión a registrar" )
+ .describeValue( "Respuesta literal de la persona" );
+
+reqShow = aiTool( "req_status", "Muestra el estado del requisito (INCOMPLETO, LISTO_PARA_REVISAR o APROBADO) y sus preguntas.",
+	( id ) => runCli( [ "req", "show", requireId( id ) ] )
+).describeId( "Id del requisito" );
+
+debugRun = aiTool( "debug_run",
+	"Diagnostica un error/stack trace, lo intenta reproducir con pruebas ejecutadas y devuelve el reporte con evidencia.",
+	( log ) => {
+		var f = getTempFile( getTempDirectory(), "suckless-log" );
+		fileWrite( f, log );
+		try {
+			return runCli( [ "debug", "--log", f ] );
+		} finally {
+			fileDelete( f );
+		}
+	}
+).describeLog( "Texto completo del error o stack trace" );
+
+traceReal = aiTool( "trace_real", "Devuelve la traza real de la prueba base que falla en la demo.",
+	() => runCli( [ "trace" ] )
+);
+
+explainFn = aiTool( "explain_function", "Explica una función del proyecto citando archivo y línea (análisis estático).",
+	( symbol ) => runCli( [ "explain", requireSymbol( symbol ) ] )
+).describeSymbol( "Nombre de la función, p. ej. addItem" );
+
+reviewFile = aiTool( "review_file", "Revisa un archivo y lista hallazgos con severidad, líneas y evidencia. Con reqId aprobado, marca como 'demostrado' los confirmados por pruebas.",
+	( file, reqId = "" ) => len( reqId )
+		? runCli( [ "review", requireFile( file ), "--req", requireId( reqId ) ] )
+		: runCli( [ "review", requireFile( file ) ] )
+).describeFile( "Ruta relativa, p. ej. demo-store/src/cart.js" )
+ .describeReqId( "Opcional: id de un requisito APROBADO" );
+
+verifyRun = aiTool( "verify_run", "Ejecuta las pruebas (base y, si hay reqId aprobado, las generadas) antes y después de la corrección.",
+	( reqId = "" ) => len( reqId ) ? runCli( [ "verify", "--req", requireId( reqId ) ] ) : runCli( [ "verify" ] )
+).describeReqId( "Opcional: id de un requisito APROBADO" );
+
+// ---------------------------------------------------------------- agentes
+requirementsAgent = aiAgent(
+	name: "RequirementsGate",
+	description: "Aclara requisitos incompletos antes de programar o probar",
+	instructions: prompt( "requirements-gate" ),
+	tools: [ reqStart, reqAnswer, reqShow ]
+);
+
+debugAgent = aiAgent(
+	name: "DebugTriage",
+	description: "Investiga errores con evidencia y distingue hipótesis de hechos",
+	instructions: prompt( "debug-triage" ),
+	tools: [ debugRun, traceReal, explainFn, verifyRun ]
+);
+
+reviewAgent = aiAgent(
+	name: "CodeReviewer",
+	description: "Explica y revisa código citando archivo y línea",
+	instructions: prompt( "code-review" ),
+	tools: [ reviewFile, explainFn, verifyRun ]
+);
+
+// Orquestador: delega en el agente adecuado (patrón de sub-agentes como herramientas).
+suckless = aiAgent(
+	name: "SuckLess",
+	description: "Aclara requisitos, diagnostica errores, revisa código y prueba con evidencia",
+	instructions: prompt( "orchestrator" ),
+	tools: [
+		aiTool( "requirements", "Aclarar o estructurar un requisito incompleto", ( task ) => requirementsAgent.run( task ) ).describeTask( "Mensaje de la persona" ),
+		aiTool( "debug", "Investigar un error, log o stack trace", ( task ) => debugAgent.run( task ) ).describeTask( "Mensaje de la persona" ),
+		aiTool( "review", "Explicar o revisar código", ( task ) => reviewAgent.run( task ) ).describeTask( "Mensaje de la persona" )
+	]
+);

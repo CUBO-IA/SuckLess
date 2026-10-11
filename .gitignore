@@ -6,3 +6,9 @@ boxlang_modules/
 output/
 work/
 *.log
+node_modules/
+data/*
+!data/.gitkeep
+*.db
+*.db-journal
+

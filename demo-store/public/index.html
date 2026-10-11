@@ -1,0 +1,17 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><title>Mini tienda</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>body{font:16px system-ui;max-width:32rem;margin:2rem auto;padding:0 1rem}button{margin:.25rem}pre{background:#f3f3f3;padding:1rem}</style></head>
+<body><h1>Mini tienda</h1>
+<p>Demo para SuckLess. Agrega productos y un cupón (SAVE10, OLD20, FIVEOFF).</p>
+<div id="p"></div>
+<button data-sku="SKU-1">+ Camiseta</button><button data-sku="SKU-2">+ Taza</button><button data-sku="SKU-3">+ Gorra</button>
+<p><input id="c" placeholder="Cupón"><button id="a">Aplicar</button></p>
+<pre id="o">Cargando…</pre>
+<script>
+const show = async (r) => { const j = await r.json(); document.getElementById('o').textContent = JSON.stringify(j, null, 2); };
+const post = (u, b) => fetch(u, { method: 'POST', body: JSON.stringify(b) }).then(show);
+document.querySelectorAll('[data-sku]').forEach((b) => b.onclick = () => post('/api/cart/items', { sku: b.dataset.sku, qty: 1 }));
+document.getElementById('a').onclick = () => post('/api/cart/coupon', { code: document.getElementById('c').value });
+fetch('/api/cart').then(show);
+</script></body></html>

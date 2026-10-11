@@ -1,0 +1,217 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SuckLess · panel de evidencias</title>
+<style>
+:root{
+  --paper:#f2f4f1; --card:#fbfcfa; --ink:#17212b; --muted:#56636f; --rule:#c9d0d6;
+  --fail:#b3261e; --ok:#17694a; --hyp:#946200; --steel:#2f4a6b;
+  --serif:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif;
+  --sans:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){:root{--paper:#161b20;--card:#1d242b;--ink:#e6ebef;--muted:#9aa7b2;--rule:#34404a;--fail:#ff8a80;--ok:#6fd1a3;--hyp:#e9b949;--steel:#8fb2dc}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--ink);font:15px/1.5 var(--sans)}
+:focus-visible{outline:3px solid var(--steel);outline-offset:2px}
+header{padding:1rem 1.5rem;border-bottom:1px solid var(--rule);display:flex;gap:1rem;align-items:baseline;flex-wrap:wrap}
+header h1{font:700 1.5rem var(--serif);margin:0}
+header p{margin:0;color:var(--muted)}
+.layout{display:grid;grid-template-columns:19rem minmax(0,1fr);min-height:calc(100vh - 4rem)}
+@media (max-width:860px){.layout{grid-template-columns:1fr}}
+aside{border-right:1px solid var(--rule);padding:1rem;overflow:auto}
+@media (max-width:860px){aside{border-right:0;border-bottom:1px solid var(--rule)}}
+main{padding:1.25rem 1.5rem;min-width:0}
+h2{font:700 1.1rem var(--serif);margin:0 0 .5rem}
+input,select,textarea,button{font:inherit;color:inherit}
+input,select,textarea{width:100%;background:var(--card);border:1px solid var(--rule);border-radius:4px;padding:.45rem .6rem}
+textarea{font-family:var(--mono);font-size:.85rem;min-height:8rem}
+button{background:var(--steel);color:#fff;border:0;border-radius:4px;padding:.5rem .9rem;cursor:pointer}
+button.ghost{background:transparent;color:var(--steel);border:1px solid var(--steel)}
+button.danger{background:transparent;color:var(--fail);border:1px solid var(--fail)}
+button:disabled{opacity:.5;cursor:wait}
+.filters{display:grid;gap:.4rem;margin-bottom:.75rem}
+.hist{list-style:none;margin:0;padding:0;display:grid;gap:.35rem}
+.hist button{width:100%;text-align:left;background:var(--card);color:var(--ink);border:1px solid var(--rule);padding:.5rem .6rem}
+.hist button[aria-current=true]{border-color:var(--steel);box-shadow:inset 3px 0 0 var(--steel)}
+.hist small{display:block;color:var(--muted)}
+.tabs{display:flex;gap:.25rem;flex-wrap:wrap;border-bottom:1px solid var(--rule);margin-bottom:1rem}
+.tabs button{background:transparent;color:var(--muted);border-radius:4px 4px 0 0;border-bottom:3px solid transparent}
+.tabs button[aria-selected=true]{color:var(--ink);border-bottom-color:var(--steel);font-weight:600}
+.bench{display:grid;gap:.6rem;max-width:44rem;margin-bottom:1.5rem}
+.row{display:flex;gap:.5rem;flex-wrap:wrap;align-items:center}
+.q{background:var(--card);border:1px solid var(--rule);border-radius:4px;padding:.6rem .75rem}
+.q label{display:block;font-weight:600;margin-bottom:.3rem}
+.q .hint{color:var(--muted);font-size:.85rem}
+.msg{color:var(--fail)} .msg.info{color:var(--muted)}
+.case{background:var(--card);border:1px solid var(--rule);border-radius:6px;padding:1rem 1.25rem}
+.case h2{font-size:1.3rem}
+.meta{color:var(--muted);font-size:.85rem;margin:.1rem 0 .75rem}
+.ladder{display:flex;gap:0;margin:.5rem 0 1rem;max-width:40rem}
+.rung{flex:1;border:1.5px solid var(--rule);padding:.4rem .6rem;font-size:.85rem;color:var(--muted);position:relative}
+.rung+.rung{border-left:0}
+.rung b{display:block;font:700 .95rem var(--serif)}
+.rung.on{color:var(--ink);background:color-mix(in srgb,var(--c) 14%,transparent);border-color:var(--c);border-left:1.5px solid var(--c);box-shadow:inset 0 -4px 0 var(--c)}
+.rung.on+.rung{border-left:1.5px solid var(--rule)}
+.rung:nth-child(1){--c:var(--hyp)} .rung:nth-child(2){--c:var(--steel)} .rung:nth-child(3){--c:var(--ok)}
+.chip{display:inline-block;padding:.05rem .5rem;border-radius:99px;border:1px solid currentColor;font-size:.8rem;font-weight:600}
+.chip.bad{color:var(--fail)} .chip.good{color:var(--ok)} .chip.warn{color:var(--hyp)}
+table{border-collapse:collapse;width:100%;font-size:.88rem;margin:.5rem 0 1rem}
+th,td{border-bottom:1px solid var(--rule);padding:.35rem .5rem;text-align:left;vertical-align:top}
+.scroll{overflow-x:auto}
+pre{background:var(--paper);border:1px solid var(--rule);border-radius:4px;padding:.75rem;overflow:auto;font:.82rem/1.45 var(--mono);white-space:pre-wrap;word-break:break-word}
+details summary{cursor:pointer;color:var(--steel);margin:.5rem 0}
+.empty{color:var(--muted);padding:1.5rem 0}
+@media (prefers-reduced-motion:no-preference){.case{animation:in .18s ease-out}@keyframes in{from{opacity:.4}to{opacity:1}}}
+</style>
+</head>
+<body>
+<header>
+  <h1>SuckLess</h1>
+  <p>Menos frustración, más soluciones comprobadas. PASS/FAIL sale del ejecutor, nunca de la IA.</p>
+</header>
+<div class="layout">
+  <aside aria-label="Historial">
+    <h2>Mis análisis</h2>
+    <div class="filters">
+      <input id="q" type="search" placeholder="Buscar en el historial" aria-label="Buscar en el historial">
+      <select id="type" aria-label="Filtrar por tipo">
+        <option value="">Todos los tipos</option><option value="debug">Debug</option><option value="verify">Verify</option><option value="review">Review</option><option value="explain">Explain</option><option value="requirements">Requisitos</option>
+      </select>
+    </div>
+    <ul class="hist" id="hist"></ul>
+  </aside>
+  <main>
+    <div class="tabs" role="tablist" id="tabs"></div>
+    <section class="bench" id="bench"></section>
+    <p id="msg" class="msg" role="status"></p>
+    <section id="result"><p class="empty">Elige una pestaña para empezar o abre un análisis del historial.</p></section>
+  </main>
+</div>
+<script>
+const $ = (s) => document.querySelector(s);
+const esc = (t) => String(t ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const TABS = [['req', 'Requisitos'], ['debug', 'Debug'], ['explain', 'Explicar'], ['review', 'Revisar'], ['verify', 'Verificar']];
+const state = { tab: 'req', current: null, files: [], symbols: [], reqId: null };
+
+async function api(path, opts = {}) {
+  const res = await fetch(path, { ...opts, headers: { 'Content-Type': 'application/json' }, body: opts.body ? JSON.stringify(opts.body) : undefined });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || res.statusText);
+  return data;
+}
+const say = (t, info) => { $('#msg').textContent = t || ''; $('#msg').className = 'msg' + (info ? ' info' : ''); };
+async function busy(btn, fn) {
+  btn.disabled = true; say('Ejecutando…', true);
+  try { await fn(); say(''); } catch (e) { say(e.message); } finally { btn.disabled = false; }
+}
+
+function renderTabs() {
+  $('#tabs').innerHTML = TABS.map(([id, label]) => `<button role="tab" aria-selected="${state.tab === id}" data-tab="${id}">${label}</button>`).join('');
+  $('#tabs').querySelectorAll('button').forEach((b) => b.onclick = () => { state.tab = b.dataset.tab; say(''); renderTabs(); renderBench(); });
+}
+
+async function reqOptions(onlyApproved) {
+  const list = await api('/api/req');
+  return list.filter((r) => !onlyApproved || r.status === 'APROBADO').map((r) => `<option value="${esc(r.id)}">${esc(r.id)} · ${esc(r.status)} · ${esc(r.objective.slice(0, 40))}</option>`).join('');
+}
+
+async function renderBench() {
+  const b = $('#bench');
+  if (state.tab === 'req') {
+    b.innerHTML = `<div class="q"><label for="rtext">Requisito (puede ser vago: SuckLess pregunta lo que falta)</label>
+      <input id="rtext" placeholder="El carrito debe aplicar descuentos"><div class="row" style="margin-top:.5rem"><button id="rstart">Abrir requisito</button>
+      <select id="rsel" style="width:auto;max-width:100%" aria-label="Requisitos existentes"><option value="">Continuar uno existente…</option>${await reqOptions(false)}</select></div></div><div id="rdoc"></div>`;
+    $('#rstart').onclick = (e) => busy(e.target, async () => showReq(await api('/api/req/start', { method: 'POST', body: { text: $('#rtext').value } })));
+    $('#rsel').onchange = async (e) => { if (e.target.value) showReq(await api('/api/req/' + e.target.value)); };
+    if (state.reqId) showReq(await api('/api/req/' + state.reqId));
+  } else if (state.tab === 'debug') {
+    b.innerHTML = `<div class="q"><label for="dlog">Error, log o stack trace</label><textarea id="dlog" placeholder="TypeError: Cannot read properties of undefined (reading 'find')&#10;    at addItem (cart.js:27)"></textarea>
+      <div class="row" style="margin-top:.5rem"><button class="ghost" id="dtrace">Cargar traza real de la demo</button><button id="drun">Diagnosticar</button></div></div>`;
+    $('#dtrace').onclick = (e) => busy(e.target, async () => { $('#dlog').value = (await api('/api/trace')).trace; });
+    $('#drun').onclick = (e) => busy(e.target, async () => show((await api('/api/debug', { method: 'POST', body: { log: $('#dlog').value } })).record, await refresh()));
+  } else if (state.tab === 'explain') {
+    b.innerHTML = `<div class="q"><label for="esym">Función a explicar</label><input id="esym" list="syms" value="addItem"><datalist id="syms">${state.symbols.map((s) => `<option value="${esc(s)}">`).join('')}</datalist>
+      <div class="row" style="margin-top:.5rem"><button id="erun">Explicar</button></div></div>`;
+    $('#erun').onclick = (e) => busy(e.target, async () => { const r = await api('/api/explain', { method: 'POST', body: { symbol: $('#esym').value } }); await refresh(); await open(r.id); });
+  } else if (state.tab === 'review') {
+    b.innerHTML = `<div class="q"><label>Archivos a revisar</label>${state.files.filter((f) => f.startsWith('demo-store/')).map((f) => `<div><label style="font-weight:400"><input type="checkbox" style="width:auto" name="rf" value="${esc(f)}" checked> ${esc(f)}</label></div>`).join('')}
+      <label for="rreq" style="margin-top:.5rem">Probar hallazgos con un requisito aprobado (opcional)</label><select id="rreq"><option value="">Sin pruebas (hallazgos potenciales)</option>${await reqOptions(true)}</select>
+      <div class="row" style="margin-top:.5rem"><button id="rrun">Revisar</button></div></div>`;
+    $('#rrun').onclick = (e) => busy(e.target, async () => { const files = [...document.querySelectorAll('[name=rf]:checked')].map((i) => i.value); const r = await api('/api/review', { method: 'POST', body: { files, reqId: $('#rreq').value } }); await refresh(); await open(r.id); });
+  } else {
+    b.innerHTML = `<div class="q"><label for="vreq">Requisito aprobado</label><select id="vreq"><option value="">Solo pruebas base</option>${await reqOptions(true)}</select>
+      <label for="vtarget" style="margin-top:.5rem">Versión</label><select id="vtarget"><option value="both">Antes y después (con error + corregida)</option><option value="buggy">Con el error</option><option value="fixed">Corregida</option></select>
+      <div class="row" style="margin-top:.5rem"><button id="vrun">Ejecutar pruebas</button></div></div>`;
+    $('#vrun').onclick = (e) => busy(e.target, async () => { const r = await api('/api/verify', { method: 'POST', body: { reqId: $('#vreq').value, target: $('#vtarget').value } }); await refresh(); await open(r.id); });
+  }
+}
+
+function showReq(d) {
+  state.reqId = d.id;
+  const qs = d.questions.map((q) => {
+    const input = q.type === 'choice'
+      ? `<select id="f-${q.id}" data-k="${q.id}" data-choice="1"><option value="">Elegir…</option>${Object.entries(q.options).map(([k, l]) => `<option value="${esc(k)}">${esc(l)}</option>`).join('')}</select>`
+      : q.type === 'list' ? `<textarea id="f-${q.id}" data-k="${q.id}" style="min-height:4rem" placeholder="Uno por línea"></textarea>` : `<input id="f-${q.id}" data-k="${q.id}">`;
+    return `<div class="q"><label for="f-${q.id}">${esc(q.text)}</label>${input}</div>`;
+  }).join('');
+  $('#rdoc').innerHTML = `<div class="q"><b>${esc(d.id)}</b> <span class="chip ${d.status === 'APROBADO' ? 'good' : d.status === 'INCOMPLETO' ? 'bad' : 'warn'}">${esc(d.status)}</span>
+    <p>${esc(d.objective)}</p>${d.rules.length ? `<p class="hint"><b>Reglas acordadas</b></p><ul>${d.rules.map((r) => `<li>${esc(r)}</li>`).join('')}</ul>` : ''}</div>
+    ${qs ? `<p class="hint">SuckLess no supone estas respuestas:</p>${qs}<div class="row"><button id="rsave">Guardar respuestas</button></div>` : ''}
+    ${d.status === 'LISTO_PARA_REVISAR' ? `<div class="q"><label for="rby">Revisión humana: ¿quién aprueba este documento?</label><input id="rby" placeholder="Nombre"><div class="row" style="margin-top:.5rem"><button id="rapprove">Aprobar requisito</button></div></div>` : ''}
+    ${d.status === 'APROBADO' ? `<div class="q">Aprobado por <b>${esc(d.approval.by)}</b>. Ya puedes generar pruebas en <b>Verificar</b> o demostrar hallazgos en <b>Revisar</b>.</div>` : ''}`;
+  const save = $('#rsave');
+  if (save) save.onclick = (e) => busy(e.target, async () => {
+    const patch = { decisions: {} };
+    document.querySelectorAll('#rdoc [data-k]').forEach((el) => { const v = el.value.trim(); if (!v) return; if (el.dataset.choice) patch.decisions[el.dataset.k] = v; else patch[el.dataset.k] = v; });
+    showReq(await api(`/api/req/${d.id}/answer`, { method: 'POST', body: patch }));
+  });
+  const ap = $('#rapprove');
+  if (ap) ap.onclick = (e) => busy(e.target, async () => { showReq(await api(`/api/req/${d.id}/approve`, { method: 'POST', body: { by: $('#rby').value } })); await refresh(); });
+}
+
+const chipClass = (s) => (/FALLA|ERROR|HALLAZGOS|HIPOTESIS|INCOMPLETO/.test(s) ? (/HIPOTESIS/.test(s) ? 'warn' : 'bad') : 'good');
+
+function ladder(diag) {
+  const top = diag.hypotheses[0].status;
+  const level = top === 'correccion_verificada' ? 3 : top === 'error_reproducido' ? 2 : 1;
+  const steps = [['Hipótesis', 'Causa probable con evidencia en el código'], ['Reproducido', 'Una prueba ejecutada falla con el mismo error'], ['Corrección verificada', 'La misma prueba pasa con la versión corregida']];
+  return `<div class="ladder" role="img" aria-label="Nivel de prueba: ${steps[level - 1][0]}">${steps.map(([t, d], i) => `<div class="rung ${i + 1 <= level ? 'on' : ''}"><b>${t}</b>${d}</div>`).join('')}</div>`;
+}
+
+function resultsTable(run) {
+  return `<div class="scroll"><table><caption style="text-align:left;font-weight:600">${run.target === 'buggy' ? 'Versión con el error' : 'Versión corregida'} · PASS ${run.summary.pass} · FAIL ${run.summary.fail} · ERROR ${run.summary.error}</caption><thead><tr><th>Prueba</th><th>Criterio</th><th>Resultado</th><th>Detalle</th></tr></thead><tbody>${run.results.map((r) => `<tr><td>${esc(r.id)}</td><td>${esc(r.criterion || r.title)}</td><td><span class="chip ${r.status === 'PASS' ? 'good' : 'bad'}">${r.status}</span></td><td>${esc((r.error?.message || '').split('\n')[0])}</td></tr>`).join('')}</tbody></table></div>`;
+}
+
+function show(a) {
+  state.current = a.id;
+  const data = a.data ?? a.record?.data;
+  const head = `<h2>${esc(a.title ?? a.record.title)}</h2><div class="meta">${esc(a.type ?? a.record.type)} · <span class="chip ${chipClass(a.status ?? a.record.status)}">${esc(a.status ?? a.record.status)}</span> · ${esc(a.createdAt ?? a.record.createdAt)}</div>`;
+  const type = a.type ?? a.record.type;
+  let body = '';
+  if (type === 'debug') body += ladder(data.diagnosis);
+  if (type === 'verify') body += data.runs.map(resultsTable).join('');
+  body += `<details ${type === 'verify' ? '' : 'open'}><summary>Reporte Markdown (listo para GitHub o Jira)</summary><pre>${esc(a.report)}</pre></details>`;
+  $('#result').innerHTML = `<article class="case">${head}${body}${a.id ? `<div class="row"><button class="ghost" id="copy">Copiar reporte</button><button class="danger" id="del">Eliminar análisis y sus datos</button></div>` : ''}</article>`;
+  if (a.id) {
+    $('#copy').onclick = () => navigator.clipboard?.writeText(a.report).then(() => say('Reporte copiado.', true));
+    $('#del').onclick = async () => { if (confirm('¿Eliminar este análisis y todos sus datos asociados?')) { await api('/api/history/' + a.id, { method: 'DELETE' }); state.current = null; $('#result').innerHTML = '<p class="empty">Análisis eliminado.</p>'; refresh(); } };
+  }
+  document.querySelectorAll('#hist button').forEach((b) => b.setAttribute('aria-current', String(Number(b.dataset.id) === a.id)));
+}
+
+async function open(id) { show(await api('/api/history/' + id)); }
+async function refresh() {
+  const p = new URLSearchParams({ q: $('#q').value, type: $('#type').value });
+  const list = await api('/api/history?' + p);
+  $('#hist').innerHTML = list.length ? list.map((a) => `<li><button data-id="${a.id}" aria-current="${a.id === state.current}"><b>${esc(a.type)}</b> · <span class="chip ${chipClass(a.status)}">${esc(a.status)}</span><small>${esc(a.title.slice(0, 70))}</small><small>${esc(a.created_at.slice(0, 16).replace('T', ' '))}</small></button></li>`).join('') : '<li class="empty">Sin análisis todavía. Ejecuta uno desde las pestañas.</li>';
+  document.querySelectorAll('#hist button').forEach((b) => b.onclick = () => open(b.dataset.id));
+}
+
+$('#q').oninput = refresh; $('#type').onchange = refresh;
+api('/api/files').then((f) => { state.files = f.files; state.symbols = f.symbols; renderTabs(); renderBench(); refresh(); }).catch((e) => say(e.message));
+</script>
+</body>
+</html>

@@ -1,0 +1,10 @@
+// Uso:  SUCKLESS_PROMPT="El carrito debe aplicar descuentos" boxlang agents/main.bxs
+// Requiere: módulo bx-ai instalado y un proveedor configurado (ver README: "Capa de agentes BoxLang").
+include "suckless.bxs";
+
+userPrompt = getSystemSetting( "SUCKLESS_PROMPT", "" );
+if ( !len( userPrompt ) ) {
+	println( "Define SUCKLESS_PROMPT con tu mensaje (requisito, error o pregunta sobre código)." );
+} else {
+	println( suckless.run( userPrompt ) );
+}
