@@ -53,7 +53,6 @@
             style="position:fixed;inset:0;z-index:-1;pointer-events:none;"></canvas>
 
     <bx:include template="../partials/nav.bxm" />
-    <bx:include template="../partials/demo-banner.bxm" />
 
     <main id="main-content" class="container" tabindex="-1">
         <!-- Slot de contenido de cada vista: si el consumidor definió

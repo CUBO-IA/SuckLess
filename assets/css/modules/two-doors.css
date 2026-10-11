@@ -6,16 +6,77 @@
   display: flex;
   flex-direction: column;
   gap: 20px;
-  margin-top: 20px;
+  margin-top: 22px;
 }
-.two-door__head { text-align: center; padding: 24px 0 8px; }
-.two-door__head .hero__sub { max-width: 40rem; margin-inline: auto; }
+.two-door__head {
+  position: relative;
+  text-align: center;
+  padding: 28px 0 10px;
+}
+.two-door__head .hero__sub {
+  max-width: 44rem;
+  margin-inline: auto;
+  font-size: clamp(1.02rem, 2vw, 1.45rem);
+  line-height: 1.5;
+  color: var(--text-secondary);
+}
 .door-debug .two-door__head h1 { color: var(--cyan-bright); }
 .door-verify .two-door__head h1 { color: var(--magenta-bright); }
 
+.two-door__quick-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 12px 0 6px;
+}
+.two-door__quick-actions .btn {
+  text-transform: none;
+  letter-spacing: 0.02em;
+}
+
+.two-door__highlights {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+  margin-top: 8px;
+}
+.two-door__stat {
+  position: relative;
+  padding: 18px 18px 16px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: linear-gradient(180deg, rgba(15, 23, 42, 0.72), rgba(15, 23, 42, 0.4));
+  box-shadow: inset 0 1px 0 rgba(148, 163, 184, 0.08);
+}
+.two-door__stat .mono-label {
+  display: inline-block;
+  margin-bottom: 10px;
+  color: var(--cyan-bright);
+}
+.two-door__stat h3 {
+  margin-bottom: 8px;
+  font-size: 1rem;
+  letter-spacing: 0.02em;
+}
+.two-door__stat p {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 0.92rem;
+  line-height: 1.5;
+}
+
 /* Tabs del selector de modo (más grandes y prominentes que las normales) */
 .two-doors__tabs { justify-content: center; margin-bottom: 8px; }
-.two-doors__tabs .tab { font-family: var(--font-display); padding: 12px 22px; letter-spacing: 0.06em; }
+.two-doors__tabs .tab {
+  font-family: var(--font-display);
+  padding: 12px 22px;
+  letter-spacing: 0.06em;
+  border-bottom: 2px solid transparent;
+}
+.two-doors__tabs .tab[aria-selected="true"] {
+  border-bottom-color: var(--cyan-bright);
+  box-shadow: inset 0 -1px 0 rgba(34, 211, 238, 0.4);
+}
 
 /* Acciones */
 .two-doors__actions { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
@@ -31,7 +92,11 @@
   flex-direction: column;
   gap: 12px;
 }
-.two-doors__hyp { position: relative; padding-top: 14px; }
+.two-doors__hyp {
+  position: relative;
+  padding-top: 14px;
+  background: rgba(15, 23, 42, 0.45);
+}
 .two-doors__hyp-title {
   display: flex;
   align-items: center;
@@ -55,4 +120,20 @@
 /* Toast de dropzone rechazado parpadeo cámara reducida: sin animaciones agresivas */
 @media (prefers-reduced-motion: reduce) {
   .dropzone.is-rejected { animation: none; }
+}
+
+@media (max-width: 700px) {
+  .two-door__highlights {
+    grid-template-columns: 1fr;
+  }
+  .two-door__head {
+    padding-top: 18px;
+  }
+  .two-doors__tabs {
+    flex-wrap: wrap;
+  }
+  .two-doors__tabs .tab {
+    width: 100%;
+    justify-content: center;
+  }
 }
