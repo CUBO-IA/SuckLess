@@ -1,0 +1,143 @@
+<!--
+  SuckLess · views/two-doors.bxm — Módulo "Two Doors" (Etapa 3).
+  SSR pinta AMBAS puertas y deja activa la que venga en ?mode=debug|verify
+  (el frontend BoxLang lee URL.mode en SSR: sin JS también respeta la URL).
+  El JS solo agrega interactividad (cambio de pestaña en la misma URL con
+  history.replaceState — no recarga y NO pierde lo escrito).
+  Accesibilidad: role=tablist/tabpanel, foco cian, flechas ←/→, Esc, dropzone
+  con <input type=file> real para teclado y lectores de pantalla.
+-->
+<bx:param name="mode" type="string" default="debug" />
+
+<bx:output>
+<!-- 1. Selector de pestañas accesible (URL sincronizada por JS; SSR respeta default) -->
+<div class="tabs two-doors__tabs" role="tablist" aria-label="Modo de trabajo">
+  <button class="tab" id="tab-debug" role="tab"
+          aria-selected="#( mode == 'debug' ? 'true' : 'false' )#"
+          aria-controls="panel-debug" type="button"
+          #( mode == 'debug' ? 'tabindex="0"' : 'tabindex="-1"' )#>
+    <span aria-hidden="true">⬅</span> A · Ya tengo un error
+  </button>
+  <button class="tab" id="tab-verify" role="tab"
+          aria-selected="#( mode == 'verify' ? 'true' : 'false' )#"
+          aria-controls="panel-verify" type="button"
+          #( mode == 'verify' ? 'tabindex="0"' : 'tabindex="-1"' )#>
+    <span aria-hidden="true">✓</span> B · Quiero probar mi app
+  </button>
+</div>
+
+<!-- 2a. PUERTA A — MODO DEBUG -->
+<section id="panel-debug" role="tabpanel" aria-labelledby="tab-debug"
+         hidden="#( mode == 'debug' ? 'false' : 'true' )#">
+  <div class="two-door door-debug animate-in">
+    <header class="two-door__head">
+      <p class="mono-label">PUERTA A · MODO DEBUG</p>
+      <h1 class="neon">Ya tengo un error</h1>
+      <p class="hero__sub">Pega el log, el stack trace o describe el código que falla. Recibirás <strong>hipótesis con evidencia archivo:línea</strong>, nunca una causa confirmada.</p>
+    </header>
+
+    <div class="card card--lg">
+      <h2 class="card__title">Entrada</h2>
+      <!-- Advertencia permanente de secretos (§1.2) -->
+      <div class="secret-warning"><div>Evita pegar secretos o credenciales. Detectamos patrones antes de enviar, pero lo mejor es no incluirlos.</div></div>
+
+      <div class="field">
+        <label for="debug-log">Error, log o stack trace</label>
+        <textarea class="textarea clean-zone" id="debug-log" name="log"
+                  placeholder="TypeError: Cannot read properties of undefined (reading 'find')
+    at addItem (cart.js:27)"
+                  aria-describedby="debug-log-hint" required></textarea>
+        <p class="hint" id="debug-log-hint">El contenido se trata como texto no confiable y se muestra tal cual, sin ejecutar.</p>
+        <p class="field__error visually-hidden" id="debug-log-error" role="alert"></p>
+      </div>
+
+      <!-- Dropzone accesible (teclado + lectores de pantalla; input file real) -->
+      <div class="field">
+        <label for="debug-files-input">Log o archivos relacionados (opcional)</label>
+        <div class="dropzone" id="debug-dropzone"
+             tabindex="0" role="button"
+             aria-describedby="debug-files-hint"
+             aria-labelledby="debug-dropzone-label">
+          <span class="dropzone__icon" aria-hidden="true">⇪</span>
+          <span id="debug-dropzone-label">Arrastra archivos aquí o haz clic / pulsa Enter para elegir</span>
+          <span class="dropzone__hint" id="debug-files-hint">.log · .txt · .js · .bx · .bxm · .json — máx 5 MB. El servidor volverá a validar.</span>
+          <input class="visually-hidden" type="file" id="debug-files-input" multiple
+                 accept=".log,.txt,.js,.bx,.bxm,.json" aria-label="Seleccionar log o archivos relacionados" />
+          <ul class="file-list" id="debug-file-list" aria-live="polite"></ul>
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="debug-reqid">Vincular a un requisito (opcional)</label>
+        <select class="select" id="debug-reqid" name="requirementId">
+          <option value="">Sin requisito asociado</option>
+          <!-- Opciones cargadas por JS desde /api/history?type=requirements (mock) -->
+        </select>
+      </div>
+
+      <div class="two-doors__actions">
+        <button class="btn btn--primary" id="debug-analyze" type="button">Analizar</button>
+        <button class="btn btn--secondary" id="debug-cancel" type="button" hidden>Cancelar</button>
+        <p class="minor mono-label" id="debug-status" role="status" aria-live="polite"></p>
+      </div>
+    </div>
+
+    <!-- Resultado: hipótesis (lleno por JS; SSR deja zona declarada) -->
+    <section class="card card--lg" id="debug-result" hidden aria-live="polite">
+      <h2 class="card__title">Resultado del diagnóstico</h2>
+      <!-- El JS construye de forma segura: resumen, ladder y lista de hipótesis-->
+    </section>
+  </div>
+</section>
+
+<!-- 2b. PUERTA B — MODO VERIFY -->
+<section id="panel-verify" role="tabpanel" aria-labelledby="tab-verify"
+         hidden="#( mode == 'verify' ? 'false' : 'true' )#">
+  <div class="two-door door-verify animate-in">
+    <header class="two-door__head">
+      <p class="mono-label">PUERTA B · MODO VERIFY</p>
+      <h1 class="neon">Quiero probar mi app</h1>
+      <p class="hero__sub">Elige un <strong>requisito aprobado</strong> y los checks se ejecutarán de verdad. Sin requisito aprobado, el executor corre solo los checks base.</p>
+    </header>
+
+    <div class="card card--lg">
+      <h2 class="card__title">Entrada</h2>
+      <div class="secret-warning"><div>Evita pegar secretos o credenciales en los identificadores de la app.</div></div>
+
+      <div class="field">
+        <label for="verify-reqid">Requisito aprobado</label>
+        <select class="select" id="verify-reqid" aria-describedby="verify-reqid-hint" name="requirementId">
+          <option value="">Solo checks base (sin requisito)</option>
+          <!-- Opciones cargadas por JS; si no hay APROBADOS:block de aviso -->
+        </select>
+        <p class="hint" id="verify-reqid-hint">Si todavía no tienes un requisito aprobado, solo se ejecutan los checks base.</p>
+      </div>
+      <div class="field">
+        <label for="verify-target">Versión a probar</label>
+        <select class="select" id="verify-target" name="target">
+          <option value="both">Antes y después (buggy + fixed)</option>
+          <option value="buggy">Con el error (buggy)</option>
+          <option value="fixed">Corregida (fixed)</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="verify-app-id">Identificador o URL de la app demo (opcional)</label>
+        <input class="input" type="text" id="verify-app-id" name="appIdentifier"
+               placeholder="demo-store/carrito" aria-describedby="verify-app-hint" />
+        <p class="hint" id="verify-app-hint">No pegues URL con query-string que contengan tokens o claves.</p>
+      </div>
+
+      <div class="two-doors__actions">
+        <button class="btn btn--primary" id="verify-run" type="button">Ejecutar pruebas</button>
+        <button class="btn btn--secondary" id="verify-cancel" type="button" hidden>Cancelar</button>
+        <p class="minor mono-label" id="verify-status" role="status" aria-live="polite"></p>
+      </div>
+    </div>
+
+    <!-- Resultado de la corrida (lo llena el módulo executor; aquí se declara) -->
+    <section class="card card--lg" id="verify-result" hidden aria-live="polite">
+      <h2 class="card__title">Resultado de la ejecución</h2>
+    </section>
+  </div>
+</section>
+</bx:output>

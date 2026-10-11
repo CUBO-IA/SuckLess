@@ -1,0 +1,59 @@
+/* SuckLess · modules/code.css — Code Explainer & Review (Etapa 6) */
+
+.code-module {
+  display: grid;
+  gap: 20px;
+  grid-template-columns: 1fr;
+}
+@media (min-width: 1024px) {
+  .code-module { grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); align-items: start; }
+}
+.code-search { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.code-search .select { max-width: 220px; }
+.code-search .input { max-width: 180px; }
+
+/* Explain steps */
+.explain-steps { list-style: none; counter-reset: st; margin: 16px 0 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.explain-steps li {
+  counter-increment: st;
+  display: flex; flex-direction: column; gap: 4px;
+  background: var(--bg-elevated); border: 1px solid var(--border);
+  border-radius: var(--radius-sm); padding: 10px 14px;
+}
+.explain-steps li::before {
+  content: '0' counter(st);
+  font-family: var(--font-mono); font-size: 0.72rem; color: var(--cyan-bright); letter-spacing: 0.08em;
+}
+.explain-steps .step-ref {
+  font-family: var(--font-mono); font-size: 0.78rem;
+  color: var(--cyan-bright); text-decoration: none;
+  align-self: flex-start;
+  padding: 2px 8px; border: 1px solid color-mix(in srgb, var(--cyan) 40%, transparent);
+  border-radius: 6px;
+}
+.explain-steps .step-ref:hover { background: rgba(6, 182, 212, 0.1); }
+
+/* Review */
+.review-filters { display: flex; gap: 24px; flex-wrap: wrap; margin-bottom: 14px; }
+.review-filters__group { border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 8px 14px 12px; display: flex; gap: 10px; flex-wrap: wrap; }
+.review-filters__group legend { padding: 0 6px; }
+.review-findings { display: flex; flex-direction: column; margin: 14px 0; }
+
+/* Hallazgos: acordeón accesible con <details> */
+.review-finding summary { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; min-height: 48px; padding: 10px 16px; }
+.review-finding .finding-sev { font-family: var(--font-mono); font-size: 0.72rem; font-weight: 700; padding: 3px 9px; border-radius: 6px; }
+.review-finding .finding-file { font-family: var(--font-mono); font-size: 0.78rem; color: var(--text-secondary); }
+.review-finding .finding-cat { font-family: var(--font-mono); font-size: 0.7rem; color: var(--text-muted); margin-left: auto; text-transform: uppercase; }
+.review-finding__body { padding: 12px 16px 16px; display: flex; flex-direction: column; gap: 10px; }
+.review-finding__labels { display: flex; gap: 8px; flex-wrap: wrap; }
+
+/* Patch: diff con símbolos visibles §Etapa 6 */
+.patch-box { position: relative; }
+.patch-box .patch-copy {
+  position: absolute; top: 8px; right: 8px;
+}
+.patch-code {
+  display: block;
+  max-height: 220px; overflow: auto;
+  font-family: var(--font-mono); font-size: 0.8rem; line-height: 1.7;
+}

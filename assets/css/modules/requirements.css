@@ -1,0 +1,62 @@
+/* SuckLess · modules/requirements.css — Requirements Gate (Etapa 4) */
+
+.req-gate { display: flex; flex-direction: column; gap: 20px; }
+.req-actions { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-top: 8px; }
+.req-actions .minor { color: var(--text-secondary); margin: 0; }
+.req-id-label { margin: 12px 0 0; color: var(--text-secondary); display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.req-id-label code.mono { color: var(--cyan-bright); font-size: 0.78rem; background: var(--bg-elevated); padding: 2px 8px; border-radius: 6px; }
+
+/* Zona 2: preguntas */
+.req-questions__head { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; margin-bottom: 14px; }
+.req-progress { display: flex; flex-direction: column; gap: 4px; min-width: 200px; flex: 1; }
+.req-questions { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 14px; }
+.req-question {
+  display: flex; flex-direction: column; gap: 8px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 14px 16px;
+}
+.req-question--answered { border-color: color-mix(in srgb, var(--ok) 40%, transparent); }
+.req-question--answered .req-question__state { color: var(--ok); }
+.req-question--pending .req-question__state { color: var(--warn); }
+.req-question__top { display: flex; align-items: flex-start; gap: 10px; }
+.req-question__state { font-family: var(--font-mono); font-size: 0.78rem; flex-shrink: 0; min-width: 2.4em; }
+.req-question__text { flex: 1; color: var(--text-primary); font-weight: 500; }
+.req-question__filter { margin-top: 10px; padding: 6px 10px; border: 0; border-radius: 6px; background: transparent; color: var(--cyan-bright); cursor: pointer; min-height: 32px; }
+.req-questions-filtered .req-question--answered { display: none; }
+
+/* Zona 3: documento en vivo */
+.req-doc__head { display: flex; align-items: center; gap: 12px; justify-content: space-between; flex-wrap: wrap; margin-bottom: 14px; }
+.req-doc { display: grid; gap: 14px; margin: 0; }
+.req-doc__field { display: flex; flex-direction: column; gap: 4px; padding: 10px 14px; background: var(--bg-elevated); border: 1px solid var(--border); border-radius: var(--radius-sm); }
+.req-doc__field dt {
+  display: flex; align-items: center; gap: 8px;
+  font-family: var(--font-mono); font-size: 0.72rem; letter-spacing: 0.06em; text-transform: uppercase;
+  color: var(--text-secondary);
+}
+.req-doc__field dt .req-field-state { font-weight: 700; font-size: 0.9rem; }
+.req-doc__field dt .req-field-state--ok { color: var(--ok); }
+.req-doc__field dt .req-field-state--none { color: var(--warn); }
+.req-doc__field dd { margin: 0; color: var(--text-primary); }
+.req-doc__field dd ul { margin: 4px 0 0 18px; padding: 0; display: flex; flex-direction: column; gap: 3px; }
+.req-doc__field--optional dt { opacity: 0.85; }
+
+/* Completitud */
+.req-completeness { display: flex; align-items: flex-start; gap: 10px; flex-wrap: wrap; margin-top: 14px; padding: 12px 16px; border: 1px dashed var(--border-strong); border-radius: var(--radius-sm); }
+.req-completeness .compl { display: inline-flex; align-items: center; gap: 5px; font-family: var(--font-mono); font-size: 0.75rem; }
+.compl--ok { color: var(--ok); }
+.compl--missing { color: var(--warn); }
+
+/* Aprobación */
+.req-approve-zone { margin-top: 18px; padding-top: 18px; border-top: 1px solid var(--border); }
+.req-approved-note { margin-top: 18px; padding-top: 18px; border-top: 1px solid var(--ok); color: var(--text-secondary); display: flex; flex-direction: column; gap: 6px; }
+.req-approved-note p { margin: 0; }
+
+/* Modal */
+.suckless-modal__subtitle { font-family: var(--font-display); font-size: 0.9rem; margin: 18px 0 8px; }
+.req-approve-criteria { list-style: none; margin: 0 0 18px; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.req-approve-criteria li { display: flex; gap: 8px; align-items: flex-start; font-size: 0.9rem; }
+.req-approve-criteria li::before { content: '▸'; color: var(--cyan-bright); flex-shrink: 0; }
+.req-modal-summary { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 12px 14px; }
+.req-modal-summary .doc-objective { color: var(--text-primary); margin: 0 0 6px; }

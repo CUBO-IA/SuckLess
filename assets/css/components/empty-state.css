@@ -1,0 +1,26 @@
+/* SuckLess · empty-state.css — Vacío / error consistente (contrato §3.5 pattern) */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  text-align: center;
+  padding: 48px var(--space-card);
+  color: var(--text-secondary);
+  border: 1px dashed var(--border-strong);
+  border-radius: var(--radius);
+  background: color-mix(in srgb, var(--bg-card) 70%, transparent);
+}
+.empty-state__icon { font-size: 2rem; color: var(--text-muted); } /* decorativo, grande: >=3:1 ok */
+.empty-state__title {
+  font-family: var(--font-display);
+  font-size: 1rem;
+  letter-spacing: 0.04em;
+  color: var(--text-primary);
+  margin: 6px 0 2px;
+}
+.empty-state__hint { font-size: 0.9rem; max-width: 34rem; }
+.empty-state .btn { margin-top: 14px; }
+/* Variante error: borde rojo, sin glow */
+.empty-state--error { border-color: color-mix(in srgb, var(--fail) 50%, transparent); }
+.empty-state--error .empty-state__icon { color: var(--fail); }

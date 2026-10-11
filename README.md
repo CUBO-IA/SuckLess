@@ -18,6 +18,39 @@ El repositorio reúne dos partes complementarias:
 
 La separación entre `prompts/` y `kit/prompts/` es intencional: el primer directorio contiene el prompt de la aplicación BoxLang; el segundo contiene instrucciones para los agentes que operan sobre el motor Node.
 
+## Frontend (Etapas 0–1 · contratos, andamiaje y sistema de diseño)
+
+La nueva interfaz se construye con plantillas SSR de BoxLang (`.bxm`/`.bxs`) y JS vanilla, **sin framework ni CDN**, con la identidad visual del *Futuristic Cyberpunk Dashboard* ([prompts/design guide.md](prompts/design guide.md)). Está desacoplada del backend mediante contratos y mocks:
+
+| Pieza | Ruta | Descripción |
+|---|---|---|
+| Contrato de API | [docs/contrato-api.md](docs/contrato-api.md) | Endpoints propuestos, shapes, códigos de error y convenciones. |
+| Mocks | [mock/](mock/) | JSON para cada endpoint: éxito, vacío, 500, 404, timeout. |
+| Capa de datos | [assets/js/api.js](assets/js/api.js) | Único punto de fetch. `USE_MOCK=true` sirve mocks; `false` llama al backend real. Provee `api()`, `wrap()`, `pollRun()` y `ApiError` uniformes. |
+| Tokens | [assets/css/tokens.css](assets/css/tokens.css) | Paleta cyberpunk §3.1 + `@font-face` de las 3 fuentes variables vendorizadas. |
+| Base | [assets/css/base.css](assets/css/base.css) | Reset, tipografía, foco cian, contenedor 1280 px, reveal y `prefers-reduced-motion`. |
+| Componentes | [assets/css/components/](assets/css/components/) | 14 módulos: card, button, badge, kpi, nav, table, tabs, accordion, modal, toast, form, dropzone, skeleton, empty-state, stepper, code-view, demo-banner. |
+| Layout SSR | [views/](views/) | `layouts/base.bxm` + partials (nav, badge, toast, modal, empty-state, kpi-card, demo-banner) y `ui-kit.bxm`. |
+| UI JS | [assets/js/ui/](assets/js/ui/) | `particles`, `modal`, `toast`, `reveal` (vanilla, ES modules, accesibles). |
+
+Con `USE_MOCK = true`, **cada módulo del frontend puede desarrollarse y probarse sin backend**. Al existir el backend real, se cambia la bandera a `false` y —si las rutas del contrato coinciden— nada más.
+
+Verificaciones ya ejecutadas en la Etapa 1:
+
+- Contraste WCAG AA programático: 9/9 pares de color ≥ 4.5:1 sobre `--bg-card` y `--bg-elevated` (muted solo en texto grande/decorativo).
+- Las 3 fuentes variables (`Orbitron`, `Space Grotesk`, `JetBrains Mono`) cargan localmente, sin CDN ni red externa.
+- Banner **MODO DEMO · DATOS DE EJEMPLO** visible mientras `USE_MOCK=true` (via atributo `data-suckless-demo` en `<html>`).
+- `prefers-reduced-motion` desactiva partículas, shimmer y animaciones.
+- Sin scroll horizontal a 390 / 768 / 1440 px; nav colapsable a 768.
+
+Reglas sintetizadas (detalle en `docs/contrato-api.md`):
+
+- HTML semántico renderizado en SSR; JS solo agrega interactividad (progressive enhancement).
+- Logs, código y respuestas de IA son contenido no confiable: siempre `textContent`, nunca `innerHTML`.
+- El badge PASS/FAIL proviene **únicamente** del campo `status` del ejecutor; ningún texto de IA lo modifica.
+- Accesibilidad WCAG AA: navegación por teclado, `aria-live` para updates, color nunca como único indicador (✓/✗ además del verde/rojo).
+- Responsive desktop-first para el jurado, usable en tablet y móvil.
+
 ## Inicio rápido
 
 ### Motor Node.js
@@ -86,16 +119,18 @@ El runner ejecuta las comprobaciones en un proceso hijo con límite de tiempo y 
 
 ```text
 agents/             Agentes BoxLang AI que orquestan el motor Node
+assets/             Frontend Etapa 0: css/ (tokens, módulos) y js/ (api.js, ui/, modules/)
 config/             Configuración del módulo bx-ai para OpenAI y Ollama
 demo-store/         Mini tienda con fallos sembrados y sus checks
 demo-store-fixed/   Referencia corregida para la comparación
-docs/               Documentación de arquitectura
+docs/               arquitectura + contrato-api.md (contratos Etapa 0)
 engine/             CLI y núcleo Node: requisitos, runner, debug y review
 examples/           Requerimientos de ejemplo para la entrevista
 kit/                Prompts y criterios de revisión del motor Node
-panel/              Servidor local e interfaz de evidencias
-prompts/            Prompt del Requirement Gate de BoxLang
-schemas/             Esquema de respuesta estructurada de BoxLang AI
+mock/               JSON de mocks para todos los endpoints del contrato
+panel/              Servidor local e interfaz de evidencias (monolítica, pre-Etapa 0)
+prompts/            Prompt del Requirement Gate de BoxLang + design guide.md
+schemas/            Esquema de respuesta estructurada de BoxLang AI
 scripts/            Demo guiada
 src/                Aplicación Requirement Gate de BoxLang
 test/               Pruebas del motor Node

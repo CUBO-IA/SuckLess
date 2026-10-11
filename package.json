@@ -10,6 +10,7 @@
     "cli": "node --disable-warning=ExperimentalWarning engine/cli.js",
     "panel": "node --disable-warning=ExperimentalWarning panel/server.js",
     "demo": "node --disable-warning=ExperimentalWarning scripts/demo.mjs",
-    "store": "node demo-store/src/server.js"
+    "store": "node demo-store/src/server.js",
+    "uikit:build": "node scripts/build-uikit-harness.js"
   }
 }

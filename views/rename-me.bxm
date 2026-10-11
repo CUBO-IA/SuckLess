@@ -1,0 +1,12 @@
+<!--
+  SuckLess · aviso de nombres de vistas: dos-doors-index.bxm se llama así porque
+  en Etapa 2 usamos views/index.bxm para el dashboard (raíz del Panel). Cuando
+  existan las vistas reales en Etapa 8:
+    /views/index.bxm            -> Panel Principal
+    /views/requirements.bxm     -> Requirements Gate
+    /views/two-doors-index.bxm  -> Two Doors
+    /views/executor-index.bxm   -> Executor
+    /views/code-index.bxm       -> Code & Review
+    /views/history-index.bxm    -> Historial
+  Este archivo no se usa en prod.
+-->

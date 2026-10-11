@@ -1,0 +1,13 @@
+<!--
+  SuckLess · views/history-index.bxm — página Historial (Etapa 7).
+  Wrapper del layout base con el patrón idéntico al resto (savecontent + layout).
+-->
+<bx:set pageTitle = "Historial" />
+<bx:set activeNav = "history" />
+<bx:set useMock = true />
+
+<bx:savecontent variable="pageContent">
+  <bx:include template="history.bxm" />
+</bx:savecontent>
+
+<bx:include template="layouts/base.bxm" />

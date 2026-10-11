@@ -1,0 +1,12 @@
+{
+  "id": "exp_01J8Z3F3C4D5E6F7G8H9I0J1K2",
+  "status": "OK",
+  "symbol": "addItem",
+  "summary": "Agrega un producto al carrito y recalcula totales.",
+  "steps": [
+    { "text": "Lee la lista de items del carrito", "file": "demo-store/src/cart.js", "lines": [22, 24] },
+    { "text": "Busca el producto por id", "file": "demo-store/src/cart.js", "lines": [26, 26] },
+    { "text": "Agrega el producto al array items", "file": "demo-store/src/cart.js", "lines": [28, 30] },
+    { "text": "Recalcula totales", "file": "demo-store/src/pricing.js", "lines": [12, 18] }
+  ]
+}

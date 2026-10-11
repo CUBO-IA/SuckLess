@@ -1,0 +1,24 @@
+<!--
+  SuckLess · views/partials/empty-state.bxm — Vacío / error consistente.
+  El patrón loading/error/empty viene de api.js wrap() (contrato §3.6); este
+  partial renderiza el estado EMPTY y ERROR en SSR (sin JS también se ve).
+  Variables: icon, title, hint, ctaHref, ctaLabel, variant ('' | 'error').
+-->
+<bx:output>
+<bx:param name="icon" type="string" default="◎" />
+<bx:param name="title" type="string" default="Aún no hay datos" />
+<bx:param name="hint" type="string" default="" />
+<bx:param name="ctaHref" type="string" default="" />
+<bx:param name="ctaLabel" type="string" default="" />
+<bx:param name="variant" type="string" default="" />
+<div class="empty-state #( variant == 'error' ? 'empty-state--error' : '' )#">
+  <span class="empty-state__icon" aria-hidden="true">#encodeForHTML( icon )#</span>
+  <p class="empty-state__title">#encodeForHTML( title )#</p>
+  <cfif hint.len()>
+    <p class="empty-state__hint">#encodeForHTML( hint )#</p>
+  </cfif>
+  <cfif ctaHref.len() && ctaLabel.len()>
+    <a class="btn btn--secondary" href="#encodeForHTML( ctaHref )#">#encodeForHTML( ctaLabel )#</a>
+  </cfif>
+</div>
+</bx:output>

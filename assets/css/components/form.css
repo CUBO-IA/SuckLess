@@ -1,0 +1,60 @@
+/* SuckLess · form.css — Formularios con etiquetas accesibles §1.4 */
+.field { display: flex; flex-direction: column; gap: 6px; margin-bottom: 16px; }
+.field > label, .field > .field__label {
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+}
+.field .hint { font-size: 0.82rem; color: var(--text-secondary); } /* §3.7: muted < 4.5 en chico */
+.field--required > label::after { content: ' *'; color: var(--warn); }
+.input, .select, .textarea {
+  width: 100%;
+  min-height: 44px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  padding: 10px 14px;
+  transition: border-color var(--t-fast) ease, box-shadow var(--t-fast) ease;
+}
+.input:focus, .select:focus, .textarea:focus {
+  outline: none;
+  border-color: var(--cyan);
+  box-shadow: 0 0 0 3px rgba(6, 182, 212, 0.25);
+}
+.input::placeholder, .textarea::placeholder { color: var(--text-secondary); }
+.textarea { min-height: 140px; resize: vertical; }
+.select { appearance: none; background-image: linear-gradient(45deg, transparent 50%, var(--text-secondary) 50%), linear-gradient(135deg, var(--text-secondary) 50%, transparent 50%); background-position: right 18px center, right 12px center; background-size: 6px 6px; background-repeat: no-repeat; padding-right: 40px; }
+/* Error de campo: texto + ícono + borde rojo (nunca solo color) */
+.field--error .input, .field--error .textarea, .field--error .select { border-color: var(--fail); }
+.field__error {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--fail);
+  font-size: 0.82rem;
+}
+.field__error::before { content: '✗'; font-weight: 700; }
+/* Checkbox/radio más grandes y cian al marcar */
+.check { display: flex; align-items: flex-start; gap: 10px; min-height: 44px; align-items: center; }
+.check input[type="checkbox"], .check input[type="radio"] {
+  width: 20px; height: 20px;
+  accent-color: var(--cyan);
+  flex-shrink: 0;
+}
+/* Advertencia permanente §1.2 "evita pegar secretos" */
+.secret-warning {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.82rem;
+  color: var(--warn);
+  background: var(--warn-bg);
+  border: 1px solid color-mix(in srgb, var(--warn) 45%, transparent);
+  border-radius: var(--radius-sm);
+  padding: 10px 14px;
+  margin-bottom: 12px;
+}
+.secret-warning::before { content: '⚠'; font-size: 1rem; }

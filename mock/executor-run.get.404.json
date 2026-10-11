@@ -1,0 +1,6 @@
+{
+  "error": {
+    "code": "NOT_FOUND",
+    "message": "La corrida con ese id no existe o fue eliminada del historial."
+  }
+}

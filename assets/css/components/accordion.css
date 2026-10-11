@@ -1,0 +1,32 @@
+/* SuckLess · accordion.css — Acordeón accesible con <details> (nativo, sin JS) */
+details.acc {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+details.acc + details.acc { margin-top: 10px; }
+details.acc summary {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 48px;
+  padding: 12px var(--space-card);
+  cursor: pointer;
+  list-style: none;
+  font-weight: 600;
+  color: var(--text-primary);
+  transition: background-color var(--t-fast) ease;
+}
+details.acc summary::-webkit-details-marker { display: none; }
+details.acc summary::before {
+  content: '▸';
+  color: var(--cyan-bright);
+  font-size: 0.9rem;
+  transition: transform var(--t-fast) var(--ease-out);
+  flex-shrink: 0;
+}
+details.acc[open] summary::before { transform: rotate(90deg); }
+details.acc summary:hover { background: rgba(148, 163, 184, 0.05); }
+details.acc[open] summary { border-bottom: 1px solid var(--border); }
+.acc__body { padding: var(--space-card); }

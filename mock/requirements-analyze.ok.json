@@ -1,0 +1,60 @@
+{
+  "id": "req_01J8Z3F0Y9Q2GBD9X3V5Q8N7B2",
+  "status": "INCOMPLETE",
+  "questions": [
+    {
+      "id": "q_scope_discount",
+      "text": "¿Los descuentos se acumulan con cupones?",
+      "category": "business",
+      "answered": false,
+      "answer": null,
+      "type": "choice",
+      "options": { "yes": "Sí, se acumulan", "no": "No, son mutuamente excluyentes" }
+    },
+    {
+      "id": "q_percentages",
+      "text": "¿Qué porcentajes de descuento soporta el sistema?",
+      "category": "business",
+      "answered": false,
+      "answer": null,
+      "type": "list",
+      "placeholder": "Uno por línea, ej: 10, 15, 20"
+    },
+    {
+      "id": "q_coupon_policy",
+      "text": "¿Un cupón puede combinarse con otro cupón?",
+      "category": "scope",
+      "answered": false,
+      "answer": null,
+      "type": "choice",
+      "options": { "yes": "Sí", "no": "No" }
+    }
+  ],
+  "missingFields": ["q_scope_discount", "q_percentages", "q_coupon_policy"],
+  "document": {
+    "objective": "El carrito aplica descuentos por porcentaje o cupón según las reglas acordadas al responder la entrevista.",
+    "actor": "Persona compradora",
+    "behavior": "El carrito recalcula el total al aplicar el descuento o el cupón.",
+    "inputs": [
+      "Lista de productos con cantidad",
+      "Porcentaje de descuento",
+      "Código de cupón"
+    ],
+    "rules": [
+      "Los descuentos no se aplican a productos con precio ya rebajado.",
+      "Un cupón no puede combinarse con otro cupón."
+    ],
+    "errors": [
+      "Cupón vencido o inexistente",
+      "Porcentaje de descuento no soportado"
+    ],
+    "acceptanceCriteria": [
+      "Dado un carrito con 2 productos de 100 y un cupón -10%, el total debe ser 180."
+    ],
+    "edgeCases": [
+      "Aplicar cupón en carrito vacío",
+      "Aplicar descuento sobre un producto ya rebajado",
+      "Cupón + descuento simultáneos (debe excluirse uno)"
+    ]
+  }
+}

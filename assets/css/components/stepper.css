@@ -1,0 +1,46 @@
+/* SuckLess · stepper.css — Flujo ACLARAR→DIAGNOSTICAR→PROBAR→VERIFICAR (§ Etapa 2) */
+.stepper {
+  display: flex;
+  gap: 8px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  counter-reset: step;
+  overflow-x: auto;
+}
+.step {
+  flex: 1 1 0;
+  min-width: 130px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  position: relative;
+}
+.step__badge {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.08em;
+  color: var(--text-secondary); /* §3.7: muted < 4.5 en chico */
+}
+.step__label {
+  font-family: var(--font-display);
+  font-size: 0.82rem;
+  letter-spacing: 0.06em;
+  color: var(--text-secondary);
+}
+.step--done { border-color: color-mix(in srgb, var(--ok) 45%, transparent); }
+.step--done .step__badge { color: var(--ok); }
+.step--done .step__label { color: var(--text-primary); }
+.step--current {
+  border-color: var(--cyan);
+  box-shadow: var(--glow-cyan-soft);
+}
+.step--current .step__badge { color: var(--cyan-bright); }
+.step--current .step__label { color: var(--cyan-bright); }
+/* Indicador numérico: 01 02 03 04 en mono */
+.step__badge::before { counter-increment: step; content: '0' counter(step) ' · '; }
+@media (max-width: 640px) { .stepper { min-width: 100%; } .step { min-width: 160px; } }

@@ -1,0 +1,108 @@
+<!--
+  SuckLess · views/executor.bxm — Test & Evidence Executor (Etapa 5, P0).
+  Cabecera de ejecución + lista de checks EN VIVO + visor de trazas/capturas
+  (zona limpia §3.6) + panel de IA separado (§1.1: la interpretación de la IA
+  JAMÁS determina el resultado).
+
+  Regla inquebrantable de esta pantalla:
+  - El badge global y cada badge de check se pintan ÚNICAMENTE desde
+    run.status y check.status devueltos POR EL EJECUTOR (contrato §2.4/§2.5).
+  - La UI no calcula, no corrige ni "infiere" ningún estado.
+  - Una corrida con 1 check FAIL nunca muestra el global PASS (lo garantiza
+    el backend; el frontend se limita a renderizar lo recibido).
+-->
+<bx:output>
+<div class="executor">
+  <!-- ======================= CABECERA DE EJECUCIÓN ======================= -->
+  <section class="card card--lg animate-in" id="exec-head" aria-labelledby="exec-title">
+    <h1 id="exec-title" class="neon">Executor</h1>
+    <p class="hero__sub">Pruebas reales sobre la demo. Cada check muestra su estado <strong>producido por el ejecutor de pruebas</strong> — no por un modelo de lenguaje.</p>
+
+    <div class="exec-form">
+      <div class="field">
+        <label for="exec-target">Versión a probar</label>
+        <select class="select" id="exec-target">
+          <option value="both">Antes y después (buggy + fixed)</option>
+          <option value="buggy">Con el error (buggy)</option>
+          <option value="fixed">Corregida (fixed)</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="exec-reqid">Requisito asociado (opcional)</label>
+        <select class="select" id="exec-reqid">
+          <option value="">Sin requisito asociado</option>
+          <!-- poblado por JS (mock) -->
+        </select>
+      </div>
+      <div class="exec-actions">
+        <button class="btn btn--primary" id="exec-run" type="button">Ejecutar</button>
+        <button class="btn btn--secondary" id="exec-cancel" type="button" hidden>Cancelar</button>
+      </div>
+    </div>
+
+    <!-- Estado global de la corrida (SSR: sin corrida) -->
+    <div class="exec-summary" id="exec-summary" role="status" aria-live="polite">
+      <p class="mono-label" id="exec-summary-id">Corrida: —</p>
+      <div class="exec-summary__row">
+        <span class="badge badge--idle" id="exec-status-badge">
+          <span class="badge__icon" aria-hidden="true">◔</span> EN COLA
+        </span>
+        <span class="mono-label" id="exec-duration" style="margin-left:auto;"></span>
+      </div>
+      <div class="exec-counters" id="exec-counters" aria-hidden="true">
+        <span class="exec-counter exec-counter--ok"><span class="exec-counter__icon">✓</span> <b id="exec-n-ok">0</b> OK</span>
+        <span class="exec-counter exec-counter--fail"><span class="exec-counter__icon">✗</span> <b id="exec-n-fail">0</b> FALLA</span>
+        <span class="exec-counter exec-counter--err"><span class="exec-counter__icon">⚠</span> <b id="exec-n-err">0</b> ERROR</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- =============== LISTA DE CHECKS EN VIVO (polling) =============== -->
+  <section class="card card--lg animate-in" id="exec-checks-zone" aria-labelledby="exec-checks-title">
+    <div class="exec-checks__head">
+      <h2 id="exec-checks-title" class="card__title">Comprobaciones</h2>
+      <label class="check"><input type="checkbox" id="exec-only-fails" /> <span>Solo fallas</span></label>
+      <span class="provenance provenance--mock" id="exec-provenance" style="margin-left:auto;">Dato de ejemplo</span>
+    </div>
+    <ul class="exec-checks" id="exec-checks" aria-live="polite">
+      <!-- filas pobladas por executor.js con textContent; cada fila:
+           ícono+color, nombre, duración, botón "ver detalle" -->
+      <li class="exec-check exec-check--idle"><span class="exec-check__icon" aria-hidden="true">◔</span> <span class="exec-check__name">Esperando la corrida…</span></li>
+    </ul>
+  </section>
+
+  <!-- =============== VISOR DE TRAZAS (zona limpia §3.6) =============== -->
+  <section class="card card--lg animate-in" id="exec-trace-zone" aria-labelledby="exec-trace-title">
+    <div class="exec-trace__head">
+      <h2 id="exec-trace-title" class="card__title">Trazas y capturas</h2>
+      <a class="btn btn--ghost btn--sm" href="/mock/executor-trace.zip" download id="exec-trace-download" hidden>Descargar traza</a>
+    </div>
+    <!-- Línea de tiempo de pasos (action, selector, duración, error) -->
+    <ol class="exec-trace" id="exec-trace" aria-label="Pasos de la corrida">
+      <li class="exec-trace__placeholder mono-label">Sin pasos todavía: los pasos aparecen al ejecutar.</li>
+    </ol>
+    <!-- Galería de capturas de pantalla (opcional; vacías en checks Node) -->
+    <div class="exec-gallery" id="exec-gallery" hidden>
+      <h3 class="suckless-modal__subtitle">Capturas</h3>
+      <div class="exec-gallery__grid" id="exec-gallery-grid" role="list"></div>
+    </div>
+  </section>
+
+  <!-- =============== PANEL DE IA SEPARADO (§1.1) =============== -->
+  <section class="card card--lg animate-in exec-ai" id="exec-ai-zone" aria-labelledby="exec-ai-title">
+    <h2 id="exec-ai-title" class="card__title"><span class="ai-tag">Interpretación de la IA (no determina el resultado)</span></h2>
+    <p class="exec-ai__empty" id="exec-ai-text">La interpretación de la IA aparecerá aquí cuando el backend la ofrezca. No es evidencia: el PASS/FAIL proviene del ejecutor.</p>
+  </section>
+</div>
+
+<div class="table-wrap">
+  <table class="data" style="margin-top:20px;">
+    <thead><tr><th scope="col">Regla de esta pantalla</th><th scope="col">Qué significa</th></tr></thead>
+    <tbody>
+      <tr><td data-label="Regla">PASS/FAIL</td><td data-label="Qué significa">Solo desde <code>run.status</code> y <code>check.status</code> del ejecutor.</td></tr>
+      <tr><td data-label="Regla">IA</td><td data-label="Qué significa">Texto en este panel etiquetado y jamás junto al badge.</td></tr>
+      <tr><td data-label="Regla">Cancelación</td><td data-label="Qué significa">Dejar de consultar; no interrumpe el trabajo del servidor.</td></tr>
+    </tbody>
+  </table>
+</div>
+</bx:output>

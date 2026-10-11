@@ -1,0 +1,61 @@
+/* SuckLess · button.css — Botones §3.4 (objetivo táctil ≥44×44) */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 44px;
+  min-width: 44px;
+  padding: 10px 20px;
+  border-radius: var(--radius-sm);
+  border: 1px solid transparent;
+  cursor: pointer;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 0.9rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  text-decoration: none;
+  transition: transform var(--t-fast) var(--ease-out),
+              box-shadow var(--t-fast) ease,
+              background-color var(--t-fast) ease,
+              border-color var(--t-fast) ease,
+              color var(--t-fast) ease,
+              filter var(--t-fast) ease;
+}
+.btn--primary {
+  background: var(--grad-brand);
+  color: #030712;
+}
+.btn--primary:hover { box-shadow: 0 0 24px rgba(6,182,212,.35), 0 0 24px rgba(217,70,239,.2); transform: translateY(-2px); }
+.btn--primary:active { transform: translateY(0); filter: brightness(0.92); }
+.btn--secondary {
+  background: transparent;
+  border-color: var(--border-strong);
+  color: var(--text-primary);
+}
+.btn--secondary:hover { border-color: var(--cyan); color: var(--cyan-bright); }
+.btn--secondary:active { transform: translateY(1px); }
+.btn--danger {
+  background: transparent;
+  border-color: var(--fail);
+  color: var(--fail);
+}
+.btn--danger:hover { background: var(--fail-bg); }
+.btn--ghost {
+  background: transparent;
+  border-color: transparent;
+  color: var(--cyan-bright);
+  padding-inline: 12px;
+}
+.btn--ghost:hover { color: var(--cyan); text-decoration: underline; }
+.btn:disabled, .btn[aria-disabled="true"] {
+  opacity: 0.45;
+  cursor: not-allowed;
+  transform: none !important;
+  box-shadow: none !important;
+}
+.btn--sm { min-height: 36px; padding: 6px 14px; font-size: 0.8rem; }
+.btn--lg { min-height: 52px; padding: 14px 28px; font-size: 1rem; }
+/* Icono-only: círculo clicable, etiqueta aria requerida por el consumidor */
+.btn--icon { padding: 0; width: 44px; height: 44px; border-radius: 50%; }

@@ -1,0 +1,24 @@
+/* SuckLess · tabs.css — Pestañas §3.4 (role=tablist / tab / tabpanel) */
+.tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--border); flex-wrap: wrap; }
+.tab {
+  appearance: none;
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: var(--text-secondary);
+  font-family: var(--font-mono);
+  font-size: 0.82rem;
+  letter-spacing: 0.04em;
+  padding: 10px 16px;
+  min-height: 44px;
+  cursor: pointer;
+  transition: color var(--t-fast) ease, border-color var(--t-fast) ease, background-color var(--t-fast) ease;
+}
+.tab:hover { color: var(--text-primary); background: rgba(148, 163, 184, 0.06); }
+.tab[aria-selected="true"] {
+  color: var(--cyan-bright);
+  border-bottom-color: var(--cyan);
+  text-shadow: 0 0 12px rgba(34, 211, 238, 0.35);
+}
+.tabpanel[hidden] { display: none; }
+.tabpanel:focus-visible { outline-offset: 4px; }

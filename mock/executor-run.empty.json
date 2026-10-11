@@ -1,0 +1,12 @@
+{
+  "id": "run_01J8Z3F2B3C4D5E6F7G8H9I0J1",
+  "status": "PASS",
+  "target": "both",
+  "requirementId": null,
+  "checks": [],
+  "summary": { "pass": 0, "fail": 0, "error": 0 },
+  "durationMs": 340,
+  "trace": { "steps": [], "downloadUrl": null },
+  "screenshots": [],
+  "aiInterpretation": null
+}

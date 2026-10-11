@@ -1,0 +1,13 @@
+<!--
+  SuckLess · views/partials/demo-banner.bxm — Banner global §1.1.
+  Mientras USE_MOCK=true el layout pone data-suckless-demo="true" en <html>,
+  y este banner aparece (visibilidad gestionada en tokens.css). Indica que
+  TODOS los datos son de ejemplo; cada resultado mock además lleva la
+  etiqueta "Dato de ejemplo" (partial provenance en UI consumidora).
+-->
+<bx:output>
+<div id="suckless-demo-banner" role="note">
+  <strong>MODO DEMO · DATOS DE EJEMPLO</strong> &mdash; estos resultados no provienen del ejecutor real.
+  <span style="text-transform:none;">Cada tarjeta mock muestra la etiqueta &laquo;Dato de ejemplo&raquo;.</span>
+</div>
+</bx:output>

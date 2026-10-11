@@ -1,0 +1,16 @@
+<!--
+  SuckLess · views/partials/kpi-card.bxm — KPI §3.4.
+  Variables: value (string/number crudo), label, variant ('ok'|'fail'|'warn'|'idle'|'' = neutro), id (opcional para refresco).
+  El COLOR es semántico según estado; el número lo pinta SSR y el JS lo
+  refresca con textContent (nunca innerHTML).
+-->
+<bx:output>
+<bx:param name="value" type="string" default="—" />
+<bx:param name="label" type="string" default="" />
+<bx:param name="variant" type="string" default="" />
+<bx:param name="id" type="string" default="" />
+<div class="kpi #( variant ? 'kpi--' & variant : '' )#" #( id ? 'id="' & id & '"' : '' )#>
+  <span class="kpi__value">#encodeForHTML( value )#</span>
+  <span class="kpi__label">#encodeForHTML( label )#</span>
+</div>
+</bx:output>

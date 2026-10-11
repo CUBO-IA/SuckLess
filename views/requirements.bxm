@@ -1,0 +1,111 @@
+<!--
+  SuckLess · views/requirements.bxm — Requirements Gate (Etapa 4, P0).
+  Pantalla en 3 zonas §Etapa 4:
+   1. Entrada de requisito en lenguaje natural (textarea + ejemplo precargable).
+   2. Lista de verificación interactiva de preguntas del agente
+      (categoría, campo, marca respondida; barra de progreso n/total; filtro).
+   3. Documento estructurado en vivo: Objetivo, Actor, Comportamiento,
+      Entradas, Reglas, Errores, Criterios de Aceptación, Casos Límite con
+      indicador de completitud ✓/✗ por campo (obligatorios bloquean aprobar).
+  Regla inquebrantable §1.1: el estado (INCOMPLETO / LISTO PARA REVISAR /
+  APROBADO) lo decide el BACKEND. El frontend lo muestra. No hay forma de
+  llegar a APROBADO sin pasar por el modal de confirmación con checkbox.
+-->
+<bx:output>
+<div class="req-gate">
+  <!-- ============================ ZONA 1 · ENTRADA ============================ -->
+  <section class="card card--lg animate-in" id="req-zone-1" aria-labelledby="req-input-title">
+    <h1 id="req-input-title" class="neon">Requirements Gate</h1>
+    <p class="hero__sub">Pega el requisito en lenguaje natural. El agente hará preguntas y estructurará el documento. <strong>Nada se aprueba sin revisión humana.</strong></p>
+
+    <div class="secret-warning"><div>Evita pegar secretos o credenciales en el texto del requisito.</div></div>
+
+    <div class="field">
+      <label for="req-text">Requisito</label>
+      <textarea class="textarea clean-zone" id="req-text" name="text" rows="4"
+        required minlength="1" maxlength="5000"
+        placeholder="El carrito debe aplicar descuentos"
+        aria-describedby="req-text-hint"></textarea>
+      <p class="hint" id="req-text-hint">1–5000 caracteres. El contenido se trata como texto no confiable.</p>
+      <p class="field__error visually-hidden" id="req-text-error" role="alert"></p>
+    </div>
+
+    <div class="req-actions">
+      <button class="btn btn--primary" id="req-analyze" type="button">Analizar requisito</button>
+      <button class="btn btn--secondary" id="req-load-example" type="button">Cargar ejemplo</button>
+      <button class="btn btn--secondary" id="req-reanalyze" type="button" hidden>Reanalizar</button>
+      <span class="minor mono-label" id="req-status" role="status" aria-live="polite"></span>
+    </div>
+    <p class="minor mono-label req-id-label">Requisito: <code id="req-id" class="mono">—</code> <button id="req-save-draft" class="btn btn--ghost btn--sm" type="button" hidden>Guardar borrador</button></p>
+  </section>
+
+  <!-- ==================== ZONA 2 · PREGUNTAS DEL AGENTE ==================== -->
+  <section class="card card--lg animate-in" id="req-zone-2" aria-labelledby="req-questions-title" hidden>
+    <div class="req-questions__head">
+      <h2 id="req-questions-title" class="card__title">Preguntas del agente</h2>
+      <div class="req-progress">
+        <div class="progress" role="img" aria-labelledby="req-progress-label">
+          <div class="progress__bar" id="req-progress-bar" style="width:0%"></div>
+        </div>
+        <span class="mono-label" id="req-progress-label">0 / 0 respondidas</span>
+      </div>
+      <label class="check"><input type="checkbox" id="req-filter-pending" /> <span>Solo pendientes</span></label>
+    </div>
+    <!-- El JS puebla las preguntas de forma segura (textContent) -->
+    <ol class="req-questions" id="req-questions" aria-live="polite"></ol>
+    <div class="req-actions">
+      <button class="btn btn--primary" id="req-save-answers" type="button" disabled>Guardar respuestas</button>
+      <span class="minor mono-label" id="req-questions-status" role="status" aria-live="polite"></span>
+    </div>
+  </section>
+
+  <!-- ==================== ZONA 3 · DOCUMENTO EN VIVO ==================== -->
+  <section class="card card--lg animate-in" id="req-zone-3" aria-labelledby="req-doc-title" hidden>
+    <div class="req-doc__head">
+      <h2 id="req-doc-title" class="card__title">Documento del requisito</h2>
+      <!-- Badge del ESTADO: lo devuelve el backend (contrato §2.1 status). UI nunca lo cambia -->
+      <span class="badge badge--warn" id="req-status-badge" role="status">
+        <span class="badge__icon" aria-hidden="true">⚠</span> INCOMPLETO
+      </span>
+    </div>
+    <dl class="req-doc" id="req-doc">
+      <!-- filas pobladas por JS con textContent; cada campo clave lleva ✓/✗ -->
+    </dl>
+    <div class="req-completeness" id="req-completeness" role="status" aria-live="polite">
+      <!-- ✓/✗ por campo. Obligatorios: objetivo, acceptanceCriteria, edgeCases -->
+    </div>
+    <div class="req-actions" id="req-approve-zone">
+      <button class="btn btn--primary" id="req-approve" type="button" disabled aria-describedby="req-approve-hint">Aprobar requisitos</button>
+      <span class="minor mono-label" id="req-approve-hint">Se habilita cuando el documento esté LISTO PARA REVISAR y los campos obligatorios completos.</span>
+    </div>
+    <div class="req-approved-note" id="req-approved-note" hidden>
+      <p><span class="badge badge--ok" id="req-approved-badge"><span class="badge__icon" aria-hidden="true">✓</span> APROBADO</span>
+      Aprobado por <strong id="req-approved-by">—</strong> el <span id="req-approved-at" class="mono">—</span>.</p>
+      <p class="minor mono-label">El documento queda en solo lectura. Puedes reabrirlo para editar y volver a recorrer el flujo.</p>
+      <button class="btn btn--secondary btn--sm" id="req-reopen" type="button">Reabrir</button>
+    </div>
+  </section>
+</div>
+
+<!-- Modal de confirmación (§1.4 + §Etapa 4): resumen + criterios + checkbox "Revisé y confirmo" -->
+<dialog id="req-approve-modal" class="suckless-modal" aria-labelledby="req-approve-modal-title">
+  <h2 id="req-approve-modal-title" class="suckless-modal__title">Confirmar aprobación</h2>
+  <div class="suckless-modal__body">
+    <p class="card__meta">Está a punto de aprobar el requisito <code id="req-approve-id" class="mono">—</code>.</p>
+    <div class="req-modal-summary" id="req-approve-summary">
+      <!-- resumen: objetivo + criterios (textContent) -->
+    </div>
+    <h3 class="suckless-modal__subtitle">Criterios de aceptación</h3>
+    <ul id="req-approve-criteria" class="req-approve-criteria"></ul>
+    <label class="check">
+      <input type="checkbox" id="req-approve-confirm" />
+      <span>Revisé y confirmo que el documento representa el acuerdo y los criterios de aceptación son verificables.</span>
+    </label>
+    <p class="field__error visually-hidden" id="req-approve-error" role="alert"></p>
+  </div>
+  <div class="suckless-modal__actions">
+    <button class="btn btn--secondary" type="button" data-modal-cancel>Cancelar</button>
+    <button class="btn btn--primary" type="button" id="req-approve-confirm-btn" disabled>Aprobar</button>
+  </div>
+</dialog>
+</bx:output>

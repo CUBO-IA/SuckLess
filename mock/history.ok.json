@@ -1,0 +1,37 @@
+[
+  {
+    "id": "hist_01J8Z3F5E6F7G8H9I0J1K2L3M4",
+    "type": "verify",
+    "title": "Cupón -10% · versión buggy",
+    "status": "FAIL",
+    "createdAt": "2026-10-10T14:03:00Z"
+  },
+  {
+    "id": "hist_01J8Z3F5E6F7G8H9I0J1K2L3M5",
+    "type": "debug",
+    "title": "TypeError léyendo find · addItem",
+    "status": "HYPOTHESIS",
+    "createdAt": "2026-10-10T13:48:00Z"
+  },
+  {
+    "id": "hist_01J8Z3F5E6F7G8H9I0J1K2L3M6",
+    "type": "review",
+    "title": "Revisión de cart.js y pricing.js",
+    "status": "FINDINGS",
+    "createdAt": "2026-10-10T13:20:00Z"
+  },
+  {
+    "id": "hist_01J8Z3F5E6F7G8H9I0J1K2L3M7",
+    "type": "requirements",
+    "title": "Descuentos en el carrito",
+    "status": "APPROVED",
+    "createdAt": "2026-10-10T12:02:00Z"
+  },
+  {
+    "id": "hist_01J8Z3F5E6F7G8H9I0J1K2L3M8",
+    "type": "explain",
+    "title": "addItem",
+    "status": "OK",
+    "createdAt": "2026-10-10T11:15:00Z"
+  }
+]

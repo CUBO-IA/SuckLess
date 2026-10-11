@@ -1,0 +1,10 @@
+<!--
+  SuckLess · views/partials/toast.bxm — Contenedor de notificaciones (§1.4).
+  El contenido se inyecta dinámicamente desde ui/toast.js con textContent
+  (nunca HTML interno). La región es role=status + aria-live=polite.
+  Se puede incluir al final del layout si el consumidor quiere región previa
+  al JS; si no, ui/toast.js la crea por sí mismo en el arranque.
+-->
+<bx:output>
+<div class="toast-region" role="status" aria-live="polite"></div>
+</bx:output>

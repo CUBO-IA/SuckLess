@@ -1,0 +1,13 @@
+<!--
+  SuckLess · views/executor-index.bxm — página del Executor (Etapa 5).
+  Patrón idéntico a los demás wrappers.
+-->
+<bx:set pageTitle = "Executor" />
+<bx:set activeNav = "executor" />
+<bx:set useMock = true />
+
+<bx:savecontent variable="pageContent">
+  <bx:include template="executor.bxm" />
+</bx:savecontent>
+
+<bx:include template="layouts/base.bxm" />

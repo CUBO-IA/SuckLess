@@ -1,0 +1,42 @@
+{
+  "id": "rev_01J8Z3F4D5E6F7G8H9I0J1K2L3",
+  "status": "FINDINGS",
+  "findings": [
+    {
+      "id": "fin_01",
+      "severity": "ALTA",
+      "category": "LOGICA",
+      "file": "demo-store/src/cart.js",
+      "lines": [27, 31],
+      "evidence": "this.cart.find(...) — no existe this.cart en el scope, va a lanzar TypeError",
+      "impact": "Fallo en runtime al agregar producto al carrito",
+      "recommendation": "Usar this.items en lugar de this.cart",
+      "patch": { "format": "diff", "language": "javascript", "content": "- this.cart.find(p => p.id === id)\n+ this.items.find(p => p.id === id)" },
+      "proven": true
+    },
+    {
+      "id": "fin_02",
+      "severity": "MEDIA",
+      "category": "LOGICA",
+      "file": "demo-store/src/cart.js",
+      "lines": [88, 94],
+      "evidence": "dos cupones activos pueden aplicarse simultáneamente; no hay exclusión mutua",
+      "impact": "Total incorrecto cuando el carrito tiene cupón + descuento directo",
+      "recommendation": "Bloquear la entrada de coupon si el descuento ya está aplicado (o viceversa).",
+      "patch": { "format": "text", "language": "javascript", "content": "if (this.discountApplied && couponCode) {\n  throw new Error('No se puede combinar cupón con descuento directo');\n}" },
+      "proven": false
+    },
+    {
+      "id": "fin_03",
+      "severity": "BAJA",
+      "category": "CALIDAD",
+      "file": "demo-store/src/pricing.js",
+      "lines": [12, 18],
+      "evidence": "porcentaje hard-coded a 10 en lugar de leer config",
+      "impact": "Cambiar el descuento requiere deploy",
+      "recommendation": "Mover el porcentaje a configuración.",
+      "patch": { "format": "diff", "language": "javascript", "content": "- const RATE = 10;\n+ const RATE = Number(process.env.DISCOUNT_RATE ?? 10);" },
+      "proven": false
+    }
+  ]
+}

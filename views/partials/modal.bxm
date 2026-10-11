@@ -1,0 +1,23 @@
+<!--
+  SuckLess · views/partials/modal.bxm — Diálogo accesible reutilizable (§1.4).
+  Usa <dialog> nativo. La apertura con focus trap, cierre con Esc y retorno
+  de foco corren en assets/js/ui/modal.js. Las acciones las define el consumidor.
+  Variables: modalId, title, contentHTML (¡PRE-ESCAPADA por quien la arma!).
+  NOTA de seguridad §1.2: el contenido dinámico del modal SIEMPRE se renderiza
+  con textContent (en JS) o encodeForHTML (en SSR). Nunca innerHTML con datos
+  de usuario, de IA o del proyecto.
+-->
+<bx:output>
+<bx:param name="modalId" type="string" default="suckless-modal" />
+<bx:param name="title" type="string" default="" />
+<dialog id="#encodeForHTML( modalId )#" class="suckless-modal" aria-labelledby="#encodeForHTML( modalId )#-title">
+  <h2 id="#encodeForHTML( modalId )#-title" class="suckless-modal__title">#encodeForHTML( title )#</h2>
+  <div class="suckless-modal__body">
+    <!-- El consumidor inserta su contenido entre las etiquetas <dialog>. -->
+  </div>
+  <div class="suckless-modal__actions">
+    <button class="btn btn--secondary" type="button" data-modal-cancel>Cancelar</button>
+    <!-- Botón de confirmación lo define cada vista según su semántica -->
+  </div>
+</dialog>
+</bx:output>

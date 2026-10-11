@@ -1,0 +1,6 @@
+{
+  "error": {
+    "code": "VALIDATION",
+    "message": "El texto del requisito es obligatorio (1 a 5000 caracteres)."
+  }
+}

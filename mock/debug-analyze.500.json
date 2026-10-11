@@ -1,0 +1,6 @@
+{
+  "error": {
+    "code": "UPSTREAM_5XX",
+    "message": "Fallo transitorio del proveedor de análisis. Reintenta."
+  }
+}

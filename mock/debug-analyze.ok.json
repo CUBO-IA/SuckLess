@@ -1,0 +1,21 @@
+{
+  "id": "dbg_01J8Z3F1A2B3C4D5E6F7G8H9I0",
+  "status": "HYPOTHESIS",
+  "ladderLevel": 1,
+  "logSummary": "TypeError: leer .find de undefined",
+  "hypotheses": [
+    {
+      "id": "hyp_01J8Z3F1A2B3C4D5E6F7G8H9I0",
+      "text": "addItem escribe el carrito en this.items, pero lo lee de this.cart",
+      "status": "hypothesis",
+      "evidence": [
+        {
+          "file": "demo-store/src/cart.js",
+          "lines": [27, 31],
+          "snippet": "this.cart.find(...)"
+        }
+      ],
+      "reproduceWith": "POST /api/executor/run con check: BASE-FRESH-LOAD"
+    }
+  ]
+}

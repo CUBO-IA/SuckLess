@@ -1,0 +1,109 @@
+/* SuckLess · modules/dashboard.css — Panel principal (Etapa 2) */
+
+/* HERO */
+.hero {
+  text-align: center;
+  padding: 40px 0 32px;
+  max-width: 46rem;
+  margin-inline: auto;
+}
+.hero__eyebrow { margin-bottom: 14px; letter-spacing: 0.2em; }
+.hero h1 {
+  font-size: clamp(2rem, 6vw, 3.4rem);
+  line-height: 1.15;
+  margin-bottom: 16px;
+}
+.hero__sub {
+  color: var(--text-secondary);
+  font-size: 1.05rem;
+  margin: 0 auto 26px;
+  max-width: 38rem;
+}
+.hero__sub strong { color: var(--text-primary); }
+.hero__cta { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+
+/* Stepper: enlace dentro del paso */
+.step__link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 32px;
+  margin-top: 6px;
+  font-family: var(--font-mono);
+  font-size: 0.74rem;
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
+  text-decoration: none;
+  transition: color var(--t-fast) ease;
+}
+.step__link:hover { color: var(--cyan-bright); }
+.step--current .step__link { color: var(--cyan-bright); }
+
+/* ACCESOS RÁPIDOS: 1→2→3 columnas */
+.quick-grid { display: grid; gap: 16px; grid-template-columns: 1fr; }
+@media (min-width: 700px) { .quick-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (min-width: 1080px) { .quick-grid { grid-template-columns: repeat(3, 1fr); } }
+.card--link { text-decoration: none; display: block; }
+.card--link:hover .card__title { color: var(--cyan-bright); }
+.card--link .provenance { margin-top: 12px; }
+.card--link .card__title { display: flex; align-items: center; gap: 8px; transition: color var(--t-fast) ease; }
+
+/* TARJETAS DE RESUMEN */
+.summary-grid { display: grid; gap: 16px; grid-template-columns: 1fr; }
+@media (min-width: 900px) { .summary-grid { grid-template-columns: repeat(3, 1fr); } }
+.summary { position: relative; min-height: 140px; }
+.summary__label {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+  margin: 0 0 10px;
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+.summary__list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.summary__list li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.86rem;
+  color: var(--text-primary);
+  padding: 6px 0;
+  border-bottom: 1px solid var(--border);
+}
+.summary__list li:last-child { border-bottom: none; }
+.summary__list .item-date {
+  margin-left: auto;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: var(--text-secondary);
+  flex-shrink: 0;
+}
+.summary__meta { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin-top: 6px; }
+.summary__value {
+  font-family: var(--font-display);
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: var(--text-primary);
+}
+/* Estados de error per-card: la tarjeta caída NO tumba el panel (§ Etapa 2) */
+.summary--error, .kpi--item-error { border-color: color-mix(in srgb, var(--fail) 50%, transparent); }
+.summary__error {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--fail);
+  font-size: 0.85rem;
+}
+.summary__error::before { content: '⚠'; }
+.summary__retry {
+  background: transparent;
+  border: 0;
+  color: var(--cyan-bright);
+  cursor: pointer;
+  min-height: 32px;
+  padding: 0 8px;
+  text-decoration: underline;
+  font-family: inherit;
+}

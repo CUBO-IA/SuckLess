@@ -1,0 +1,6 @@
+{
+  "error": {
+    "code": "TIMEOUT",
+    "message": "El análisis del requisito excedió el tiempo de espera (15 s). Aún puede terminar en backend."
+  }
+}
