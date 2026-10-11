@@ -6,8 +6,10 @@ test('dashboard open-findings KPI excludes issues demonstrated by tests', () => 
   assert.equal(countOpenFindings([
     { proven: false },
     { proven: true },
+    { kind: 'potencial' },
+    { kind: 'demostrado' },
     { proven: false },
-  ]), 2);
+  ]), 3);
 });
 
 test('dashboard open-findings KPI handles an empty review', () => {

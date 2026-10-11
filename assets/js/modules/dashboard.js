@@ -15,7 +15,7 @@ import { toastError } from '../ui/toast.js';
 const el = (sel) => document.querySelector(sel);
 
 export function countOpenFindings(findings) {
-  return findings.filter((finding) => !finding.proven).length;
+  return findings.filter((finding) => !finding.proven && finding.kind !== 'demostrado').length;
 }
 
 // ---------------------------------------------------------------------------
