@@ -4,6 +4,7 @@
       "settings": {
         "provider": "ollama",
         "defaultParams": {
+          "model": "qwen3:4b",
           "temperature": 0.1
         },
         "providers": {
