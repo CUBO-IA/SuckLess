@@ -9,7 +9,7 @@
  * Solo usa textContent y createElement SIEMPRE (§1.2): nunca innerHTML con
  * datos del backend, de IA o de la persona.
  */
-import { api, wrap, isEmptyList, ApiError } from '../api.js';
+import { api, wrap, isEmptyList, ApiError, USE_MOCK } from '../api.js';
 import { toastError } from '../ui/toast.js';
 
 const el = (sel) => document.querySelector(sel);
@@ -88,10 +88,13 @@ async function refreshKpis() {
   const findingsKpi = el('[data-kpi="findingsOpen"]');
   if (!wrapKpi && !okKpi && !failKpi && !findingsKpi) return; // no estamos en dashboard
 
+  const reviewRequest = USE_MOCK
+    ? api('/api/code/review', { method: 'POST', body: { files: ['demo-store/src/cart.js'] } })
+    : api('/api/history?type=review');
   const [requirements, run, review] = await Promise.allSettled([
     api('/api/requirements'),
     api('/api/executor/run/latest'),
-    api('/api/code/review', { method: 'POST', body: { files: ['demo-store/src/cart.js'] } }),
+    reviewRequest,
   ]);
 
   // 1) Requisitos aprobados — su fuente propia; error no afecta a los demás
@@ -122,8 +125,23 @@ async function refreshKpis() {
   // 3) Hallazgos abiertos (no demostrados) — del review
   if (findingsKpi) {
     if (review.status === 'fulfilled') {
-      const findings = review.value.data.findings ?? [];
-      renderKpi(findingsKpi, { value: findings.length, label: 'Hallazgos abiertos', variant: 'warn' });
+      if (USE_MOCK) {
+        const findings = review.value.data.findings ?? [];
+        renderKpi(findingsKpi, { value: findings.length, label: 'Hallazgos abiertos', variant: 'warn' });
+      } else {
+        const reviews = Array.isArray(review.value.data) ? review.value.data : [];
+        if (reviews.length === 0) {
+          renderCardNotice(findingsKpi, 'Sin revisiones todavía.');
+        } else {
+          try {
+            const { data } = await api(`/api/history/${encodeURIComponent(reviews[0].id)}`);
+            if (!Array.isArray(data.data?.findings)) throw new ApiError('EMPTY_RESPONSE', 'El detalle no contiene hallazgos.');
+            renderKpi(findingsKpi, { value: data.data.findings.length, label: 'Hallazgos abiertos', variant: 'warn' });
+          } catch {
+            renderCardError(findingsKpi, 'No se pudieron cargar los hallazgos', refreshKpis);
+          }
+        }
+      }
     } else {
       renderCardError(findingsKpi, 'Review no disponible', refreshKpis);
     }
@@ -200,7 +218,9 @@ async function refreshSummaries() {
   if (!reqBox && !runBox && !histBox) return;
 
   const [req, run, hist] = await Promise.allSettled([
-    api('/api/requirements/analyze', { method: 'POST', body: { text: 'El carrito debe aplicar descuentos' } }),
+    USE_MOCK
+      ? api('/api/requirements/analyze', { method: 'POST', body: { text: 'El carrito debe aplicar descuentos' } })
+      : api('/api/requirements'),
     api('/api/executor/run/latest'),
     api('/api/history'),
   ]);

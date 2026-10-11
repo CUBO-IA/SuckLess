@@ -13,7 +13,7 @@
 
 <bx:set pageTitle = "Panel principal" />
 <bx:set activeNav = "dashboard" />
-<bx:set useMock = true />
+<bx:set useMock = false />
 
 <!-- El layout imprime pageContent en <main>; cronológicamente, base.bxm usa pageContent -->
 <bx:include template="layouts/base.bxm" />
