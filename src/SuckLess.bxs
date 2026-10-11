@@ -11,6 +11,26 @@ promptPath = expandPath( "../prompts/requirement-gate.md" );
 evaluationTemplate = jsonDeserialize( fileRead( schemaPath ) );
 systemPrompt = fileRead( promptPath );
 
+aiSettings = getModuleInfo( "bxai" ).settings;
+configuredProvider = aiSettings.provider ?: "openai";
+configuredModel = "";
+
+if (
+    aiSettings.keyExists( "defaultParams" ) &&
+    aiSettings.defaultParams.keyExists( "model" )
+) {
+    configuredModel = aiSettings.defaultParams.model;
+}
+
+if (
+    aiSettings.keyExists( "providers" ) &&
+    aiSettings.providers.keyExists( configuredProvider ) &&
+    aiSettings.providers[ configuredProvider ].keyExists( "params" ) &&
+    aiSettings.providers[ configuredProvider ].params.keyExists( "model" )
+) {
+    configuredModel = aiSettings.providers[ configuredProvider ].params.model;
+}
+
 function evaluateRequirement(
     required string requirement,
     array interviewHistory = []
@@ -19,6 +39,23 @@ function evaluateRequirement(
         requirement & char( 10 ) & char( 10 ) &
         "HISTORIAL DE PREGUNTAS Y RESPUESTAS:" & char( 10 ) &
         jsonSerialize( interviewHistory );
+
+    requestParams = {
+        temperature: 0.1
+    };
+
+    requestOptions = {
+        returnFormat: evaluationTemplate
+    };
+
+    if ( configuredModel.len() ) {
+        requestParams.model = configuredModel;
+    }
+
+    if ( configuredProvider == "ollama" ) {
+        requestParams.think = false;
+        requestOptions.timeout = 300;
+    }
 
     return aiChat(
         messages: [
@@ -31,10 +68,8 @@ function evaluateRequirement(
                 content: userPrompt
             }
         ],
-        params: {
-            temperature: 0.1
-        },
-        returnFormat: evaluationTemplate
+        params: requestParams,
+        options: requestOptions
     );
 }
 
