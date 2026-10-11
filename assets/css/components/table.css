@@ -1,0 +1,52 @@
+/* SuckLess · table.css — Tablas §3.4; en móvil se apilan (§1.5) */
+.table-wrap { overflow-x: auto; border: 1px solid var(--border); border-radius: var(--radius); background: var(--bg-card); }
+table.data {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+table.data th {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+  text-align: left;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border-strong);
+  background: var(--bg-elevated);
+  white-space: nowrap;
+}
+table.data td {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border);
+  color: var(--text-primary);
+  vertical-align: top;
+}
+table.data tbody tr:last-child td { border-bottom: none; }
+table.data tbody tr:hover td { background: rgba(148, 163, 184, 0.04); }
+table.data td.num, table.data th.num { text-align: right; font-variant-numeric: tabular-nums; }
+/* Responsive: tabla → tarjetas apiladas en ≤ 640px */
+@media (max-width: 640px) {
+  table.data, table.data tbody, table.data tr, table.data td { display: block; }
+  table.data thead { display: none; }
+  table.data tr {
+    border-bottom: 1px solid var(--border);
+    padding: 8px 0;
+  }
+  table.data td {
+    border: none;
+    padding: 6px 16px;
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+  }
+  table.data td::before {
+    content: attr(data-label);
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    color: var(--text-secondary);
+    flex-shrink: 0;
+  }
+}

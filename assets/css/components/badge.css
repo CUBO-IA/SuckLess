@@ -1,0 +1,53 @@
+/* SuckLess · badge.css — Badges §3.4: SIEMPRE ícono + texto + color.
+   Cian/magenta JAMÁS indican PASS/FAIL (§3.2). */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 1px solid currentColor;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.badge__icon { font-size: 0.85rem; line-height: 1; }
+.badge--ok    { color: var(--ok);   background: var(--ok-bg); }
+.badge--warn  { color: var(--warn); background: var(--warn-bg); }
+.badge--fail  { color: var(--fail); background: var(--fail-bg); }
+.badge--idle  { color: var(--idle); background: var(--idle-bg); }
+/* Informativo de marca (LISTO PARA REVISAR, BAJA severidad): cian, no es resultado */
+.badge--info  { color: var(--cyan); background: rgba(6, 182, 212, 0.1); }
+.badge--brand { color: var(--magenta-bright); background: rgba(217, 70, 239, 0.1); }
+/* EJECUTANDO: cian con spinner (aria-hidden para no duplicar el texto visible) */
+.badge--running .badge__icon { color: var(--cyan); animation: suckless-spin 1s linear infinite; }
+/* Etiqueta de procedencia: "Dato de ejemplo" / "Resultado del ejecutor" */
+.provenance {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--text-secondary); /* §3.7: muted no llega a 4.5:1 en texto chico */
+  padding: 3px 8px;
+  border: 1px dashed var(--border-strong);
+  border-radius: 6px;
+}
+.provenance--mock { color: var(--warn); border-color: var(--warn); }
+/* Rótulo fijo de IA (no determina el resultado) */
+.ai-tag {
+  display: inline-block;
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.04em;
+  color: var(--magenta-bright);
+  background: rgba(217, 70, 239, 0.08);
+  border: 1px solid color-mix(in srgb, var(--magenta) 45%, transparent);
+  border-radius: 6px;
+  padding: 3px 9px;
+}

@@ -1,0 +1,16 @@
+<!--
+  SuckLess · views/partials/badge.bxm — Badge de estado §3.4 + §1.1.
+  El color lo decide EL ESTADO devuelto por el ejecutor/backend; la UI nunca
+  lo altera. Variables: status (texto del enum), variant (clase css opcional,
+  default: mapear desde status del contrato), icon (ícono visible accesible).
+  Uso: incluir este partial por cada estado que el contrato devuelve.
+-->
+<bx:output>
+<bx:param name="status" type="string" default="" />
+<bx:param name="variant" type="string" default="idle" />
+<bx:param name="icon" type="string" default="◔" />
+<span class="badge badge--#encodeForHTML( variant )#">
+  <span class="badge__icon#( variant == 'running' ? ' spin' : '' )#" aria-hidden="true">#encodeForHTML( icon )#</span>
+  #encodeForHTML( status )#
+</span>
+</bx:output>

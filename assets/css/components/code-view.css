@@ -1,0 +1,39 @@
+/* SuckLess · code-view.css — Visor de código / trazas: zona limpia §3.6, tema de sintaxis §3.8 */
+.code-view {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  overflow: auto;
+  max-height: 70vh;
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  line-height: 1.6;
+}
+.code-view table { border-collapse: collapse; width: 100%; }
+.code-view td { padding: 1px 10px; white-space: pre-wrap; word-break: break-word; }
+.code-view .line-num {
+  text-align: right;
+  color: var(--text-secondary); /* §3.7: contraste en texto chico */
+  user-select: none;
+  min-width: 3.5em;
+  border-right: 1px solid var(--border);
+  padding-right: 12px;
+  font-size: 0.78rem;
+}
+/* Rango citado por evidencia de IA (hipótesis, findings) */
+.code-view .line-cited { background: rgba(6, 182, 212, 0.10); box-shadow: inset 3px 0 0 var(--cyan); }
+.code-view .line-error { background: var(--fail-bg); box-shadow: inset 3px 0 0 var(--fail); }
+/* Tema de resaltado de sintaxis propio §3.8 (contraste AA sobre bg-card).
+   §3.7: los comentarios usan --text-muted solo a >1rem; en chico se usa
+   --text-secondary para asegurar 4.5:1. */
+.syn-kw    { color: var(--cyan-bright); font-weight: 600; }      /* palabras clave: cian */
+.syn-fn    { color: var(--magenta-bright); }                     /* funciones: magenta */
+.syn-str   { color: #F59E0B; }                                   /* cadenas: ámbar */
+.syn-comment { color: var(--text-secondary); font-style: italic; }                 /* comentarios: gris clarito (AA) */
+.syn-num   { color: #67E8F9; }                                   /* números: cian brillante */
+.syn-op    { color: var(--text-secondary); }
+/* Bloques de diff Etapa 6: + en verde y - en rojo, SIEMPRE con símbolo visible */
+.diff-add { color: var(--ok); background: var(--ok-bg); }
+.diff-add::before { content: '+ '; font-weight: 700; }
+.diff-del { color: var(--fail); background: var(--fail-bg); text-decoration: line-through; }
+.diff-del::before { content: '- '; font-weight: 700; }

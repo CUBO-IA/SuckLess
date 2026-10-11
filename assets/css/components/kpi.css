@@ -1,0 +1,54 @@
+/* SuckLess · kpi.css — Indicadores KPI §3.4 */
+.kpi-grid {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: 1fr;
+}
+@media (min-width: 640px) { .kpi-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (min-width: 1024px) { .kpi-grid { grid-template-columns: repeat(4, 1fr); } }
+
+.kpi {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px var(--space-card);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.kpi__value {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: clamp(1.8rem, 3.5vw, 2.4rem);
+  line-height: 1.1;
+  color: var(--text-primary);
+  font-variant-numeric: tabular-nums;
+}
+.kpi__label {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+}
+/* Estados: color semántico, nunca cian/magenta */
+.kpi--ok .kpi__value { color: var(--ok); }
+.kpi--fail .kpi__value { color: var(--fail); }
+.kpi--warn .kpi__value { color: var(--warn); }
+.kpi--idle .kpi__value { color: var(--idle); }
+/* Barra de progreso (para pasos o completitud) */
+.progress {
+  height: 8px;
+  background: var(--bg-elevated);
+  border-radius: 999px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+}
+.progress__bar {
+  height: 100%;
+  background: var(--grad-brand);
+  border-radius: inherit;
+  transition: width var(--t-slow) var(--ease-out);
+}
+.progress--ok .progress__bar { background: var(--ok); }
+.progress--fail .progress__bar { background: var(--fail); }

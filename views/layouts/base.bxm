@@ -1,0 +1,61 @@
+<!--
+  SuckLess · views/layouts/base.bxm
+  Layout base de todas las vistas (SSR BoxLang). Progressive enhancement:
+  la página navega y se lee sin JS; el JS solo refresca e interactúa.
+  Datos dinámicos SIEMPRE a través de encodeForHTML (¡nunca interpolación cruda!).
+
+  Variables esperadas por el consumidor:
+    pageTitle  (string) — título de la página
+    activeNav  (string) — clave de nav activa: dashboard|requirements|two-doors|executor|code|history|ui-kit
+    useMock    (boolean) — true => banner MODO DEMO visible (Etapa 0: siempre true)
+-->
+<!-- El banner MODO DEMO vive en ../partials/demo-banner.bxm; la visibilidad la
+     decide el atributo data-suckless-demo en <html> + tokens.css. -->
+<bx:output>
+<!doctype html>
+<html lang="es" class="no-js" data-suckless-demo="#( useMock ? 'true' : 'false' )#">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>#encodeForHTML( ( pageTitle ?: "SuckLess" ) )# · SuckLess</title>
+    <link rel="stylesheet" href="/assets/css/tokens.css">
+    <link rel="stylesheet" href="/assets/css/base.css">
+    <link rel="stylesheet" href="/assets/css/components/nav.css">
+    <link rel="stylesheet" href="/assets/css/components/card.css">
+    <link rel="stylesheet" href="/assets/css/components/button.css">
+    <link rel="stylesheet" href="/assets/css/components/badge.css">
+    <link rel="stylesheet" href="/assets/css/components/kpi.css">
+    <link rel="stylesheet" href="/assets/css/components/table.css">
+    <link rel="stylesheet" href="/assets/css/components/tabs.css">
+    <link rel="stylesheet" href="/assets/css/components/accordion.css">
+    <link rel="stylesheet" href="/assets/css/components/modal.css">
+    <link rel="stylesheet" href="/assets/css/components/toast.css">
+    <link rel="stylesheet" href="/assets/css/components/form.css">
+    <link rel="stylesheet" href="/assets/css/components/dropzone.css">
+    <link rel="stylesheet" href="/assets/css/components/skeleton.css">
+    <link rel="stylesheet" href="/assets/css/components/empty-state.css">
+    <link rel="stylesheet" href="/assets/css/components/stepper.css">
+    <link rel="stylesheet" href="/assets/css/components/code-view.css">
+    <link rel="stylesheet" href="/assets/css/components/demo-banner.css">
+    <!-- El JS detecta no-js y lo quita: progressive enhancement vía clase. -->
+    <script>document.documentElement.classList.remove('no-js');</script>
+    <script type="module" src="/assets/js/main.js"></script>
+</head>
+<body>
+    <a class="skip-link" href="#main-content">Saltar al contenido principal</a>
+    <canvas id="suckless-particles" aria-hidden="true"
+            style="position:fixed;inset:0;z-index:-1;pointer-events:none;"></canvas>
+
+    <bx:include template="../partials/nav.bxm" />
+    <bx:include template="../partials/demo-banner.bxm" />
+
+    <main id="main-content" class="container" tabindex="-1">
+        <!-- Slot de contenido de cada vista (incluido por el consumidor). -->
+    </main>
+
+    <footer class="container" style="padding-block:24px 48px;">
+        <p class="mono-label">SuckLess &mdash; menos frustración, más soluciones comprobadas · PASS/FAIL proviene del ejecutor, nunca de la IA.</p>
+    </footer>
+</body>
+</html>
+</bx:output>

@@ -1,0 +1,26 @@
+<!--
+  SuckLess · views/partials/nav.bxm — Barra superior fija §3.4.
+  Variable: activeNav (dashboard|requirements|two-doors|executor|code|history|ui-kit)
+  Navega sin JS; el toggle móvil solo agranda/colapsa la lista.
+-->
+<bx:output>
+<nav class="nav" aria-label="Navegación principal SuckLess">
+  <div class="container nav__inner">
+    <a class="nav__brand" href="/">SUCK<span class="accent">LESS</span></a>
+    <button class="nav__toggle" type="button" id="nav-toggle"
+            aria-expanded="false" aria-controls="nav-links">
+      <span aria-hidden="true">☰</span>
+      <span class="visually-hidden">Abrir o cerrar el menú de navegación</span>
+    </button>
+    <ul class="nav__links" id="nav-links">
+      <li><a class="nav__link" href="/" #( activeNav == 'dashboard' ? 'aria-current="page"' : '' )#>Panel</a></li>
+      <li><a class="nav__link" href="/requirements" #( activeNav == 'requirements' ? 'aria-current="page"' : '' )#>Requirements</a></li>
+      <li><a class="nav__link" href="/two-doors" #( activeNav == 'two-doors' ? 'aria-current="page"' : '' )#>Two Doors</a></li>
+      <li><a class="nav__link" href="/executor" #( activeNav == 'executor' ? 'aria-current="page"' : '' )#>Executor</a></li>
+      <li><a class="nav__link" href="/code" #( activeNav == 'code' ? 'aria-current="page"' : '' )#>Código</a></li>
+      <li><a class="nav__link" href="/history" #( activeNav == 'history' ? 'aria-current="page"' : '' )#>Historial</a></li>
+      <li><a class="nav__link" href="/ui-kit" #( activeNav == 'ui-kit' ? 'aria-current="page"' : '' )#>UI Kit</a></li>
+    </ul>
+  </div>
+</nav>
+</bx:output>

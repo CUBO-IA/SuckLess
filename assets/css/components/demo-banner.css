@@ -1,0 +1,23 @@
+/* SuckLess · demo-banner.css — Indicador global de modo demo §1.1.
+   Visible con attribute data-suckless-demo="true" en <html> */
+#suckless-demo-banner {
+  display: none; /* visible solo con el atributo (tokens.css) */
+  width: 100%;
+  background: repeating-linear-gradient(
+      -45deg,
+      rgba(245, 158, 11, 0.14),
+      rgba(245, 158, 11, 0.14) 12px,
+      rgba(3, 7, 18, 0.25) 12px,
+      rgba(3, 7, 18, 0.25) 24px
+    ),
+    color-mix(in srgb, var(--warn) 14%, var(--bg-main));
+  color: var(--warn);
+  border-bottom: 1px solid color-mix(in srgb, var(--warn) 55%, transparent);
+  font-family: var(--font-mono);
+  font-size: 0.74rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  text-align: center;
+  padding: 6px 16px;
+}
+#suckless-demo-banner strong { color: #FCD34D; }

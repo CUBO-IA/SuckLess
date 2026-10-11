@@ -1,0 +1,82 @@
+/* SuckLess · nav.css — Navegación superior fija §3.4 */
+.nav {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: var(--nav-bg);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border);
+}
+.nav__inner {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 64px;
+  flex-wrap: wrap;
+}
+.nav__brand {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 1.05rem;
+  letter-spacing: 0.12em;
+  color: var(--text-primary);
+  text-shadow: var(--neon-title);
+  text-decoration: none;
+  padding: 8px 4px;
+  margin-right: auto;
+}
+.nav__brand .accent { color: var(--cyan-bright); }
+.nav__toggle {
+  display: none;
+  background: transparent;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  min-width: 44px;
+  min-height: 44px;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+.nav__links {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  font-family: var(--font-mono);
+  font-size: 0.82rem;
+  letter-spacing: 0.04em;
+}
+.nav__link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 8px 14px;
+  border-radius: var(--radius-sm);
+  color: var(--text-secondary);
+  text-decoration: none;
+  border: 1px solid transparent;
+  transition: color var(--t-fast) ease, background-color var(--t-fast) ease, border-color var(--t-fast) ease;
+}
+.nav__link:hover { color: var(--text-primary); background: rgba(148, 163, 184, 0.08); }
+.nav__link[aria-current="page"] {
+  color: var(--cyan-bright);
+  border-color: color-mix(in srgb, var(--cyan) 40%, transparent);
+  background: rgba(6, 182, 212, 0.08);
+}
+@media (max-width: 860px) {
+  .nav__toggle { display: inline-flex; margin-left: auto; order: 2; }
+  .nav__brand { margin-right: 0; }
+  .nav__links {
+    display: none;
+    flex-basis: 100%;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 2px;
+    padding-bottom: 10px;
+  }
+  .nav__links.is-open { display: flex; }
+  .nav__link { width: 100%; }
+}

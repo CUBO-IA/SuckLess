@@ -1,0 +1,146 @@
+<!--
+  SuckLess · views/ui-kit.bxm — Catálogo de componentes (solo desarrollo).
+  Muestra cada componente del sistema en sus estados clave.
+  Se desactiva/elimina en la Etapa 8 ("Retirar /ui-kit").
+-->
+<bx:output>
+<h1 class="neon">UI Kit</h1>
+<p class="card__meta">Catálogo de componentes del sistema de diseño. Página solo para desarrollo.</p>
+
+<section class="card card--lg animate-in" style="margin-top:24px;">
+    <h2 class="card__title">Badges de estado</h2>
+    <p><span class="badge badge--ok"><span class="badge__icon" aria-hidden="true">✓</span> PASS</span>
+       <span class="badge badge--fail"><span class="badge__icon" aria-hidden="true">✗</span> FAIL</span>
+       <span class="badge badge--warn"><span class="badge__icon" aria-hidden="true">⚠</span> INCOMPLETO</span>
+       <span class="badge badge--info"><span class="badge__icon" aria-hidden="true">◎</span> LISTO PARA REVISAR</span>
+       <span class="badge badge--ok"><span class="badge__icon" aria-hidden="true">✓</span> APROBADO</span>
+       <span class="badge badge--idle"><span class="badge__icon" aria-hidden="true">◔</span> EN COLA</span>
+       <span class="badge badge--running"><span class="badge__icon spin" aria-hidden="true">◷</span> EJECUTANDO</span>
+       <span class="badge badge--fail"><span class="badge__icon" aria-hidden="true">⚠</span> ERROR DEL EJECUTOR</span>
+    </p>
+    <h3 style="margin-top:16px;">Severidad</h3>
+    <p><span class="badge badge--fail"><span class="badge__icon" aria-hidden="true">▪</span> ALTA</span>
+       <span class="badge badge--warn"><span class="badge__icon" aria-hidden="true">▪</span> MEDIA</span>
+       <span class="badge badge--info"><span class="badge__icon" aria-hidden="true">▪</span> BAJA</span>
+    </p>
+    <h3 style="margin-top:16px;">Procedencia y etiquetas de IA</h3>
+    <p><span class="provenance provenance--mock">Dato de ejemplo</span>
+       <span class="provenance">Resultado producido por el ejecutor de pruebas</span>
+       <span class="ai-tag">Interpretación de la IA (no determina el resultado)</span>
+       <span class="ai-tag">HIPÓTESIS · PENDIENTE DE PROBAR</span>
+       <span class="ai-tag">Recomendación de IA · requiere validación humana</span>
+    </p>
+</section>
+
+<section class="card card--lg animate-in" style="margin-top:24px;">
+    <h2 class="card__title">Botones</h2>
+    <div style="display:flex;gap:12px;flex-wrap:wrap;">
+        <button class="btn btn--primary" type="button">Analizar</button>
+        <button class="btn btn--secondary" type="button">Ejecutar</button>
+        <button class="btn btn--danger" type="button">Eliminar</button>
+        <button class="btn btn--ghost" type="button">Copiar</button>
+        <button class="btn btn--primary" type="button" disabled>Deshabilitado</button>
+        <button class="btn btn--icon btn--secondary" type="button" aria-label="Más información">?</button>
+    </div>
+</section>
+
+<section class="card card--lg animate-in" style="margin-top:24px;">
+    <h2 class="card__title">KPI Grid</h2>
+    <div class="kpi-grid">
+        <div class="kpi kpi--ok"><span class="kpi__value">8/8</span><span class="kpi__label">Checks OK</span></div>
+        <div class="kpi kpi--fail"><span class="kpi__value">1</span><span class="kpi__label">Checks FALLA</span></div>
+        <div class="kpi kpi--warn"><span class="kpi__value">3</span><span class="kpi__label">Hallazgos abiertos</span></div>
+        <div class="kpi kpi--idle"><span class="kpi__value">1</span><span class="kpi__label">Requisito en curso</span></div>
+    </div>
+</section>
+
+<section class="card card--lg animate-in" style="margin-top:24px;">
+    <h2 class="card__title">Stepper del flujo</h2>
+    <ol class="stepper">
+        <li class="step step--done"><span class="step__badge">Completado</span><span class="step__label">ACLARAR</span></li>
+        <li class="step step--current"><span class="step__badge">En curso</span><span class="step__label">DIAGNOSTICAR</span></li>
+        <li class="step"><span class="step__badge">Pendiente</span><span class="step__label">PROBAR</span></li>
+        <li class="step"><span class="step__badge">Pendiente</span><span class="step__label">VERIFICAR</span></li>
+    </ol>
+</section>
+
+<section class="card card--lg animate-in" style="margin-top:24px;">
+    <h2 class="card__title">Estados (vacío / error)</h2>
+    <div class="empty-state">
+        <span class="empty-state__icon" aria-hidden="true">◎</span>
+        <p class="empty-state__title">Aún no hay análisis</p>
+        <p class="empty-state__hint">Ejecuta un análisis desde el Two Doors para ver resultados aquí.</p>
+        <button class="btn btn--secondary" type="button">Ir a Two Doors</button>
+    </div>
+</section>
+
+<section class="card card--lg animate-in" style="margin-top:24px;">
+    <h2 class="card__title">Tabla</h2>
+    <div class="table-wrap">
+        <table class="data">
+            <thead><tr><th scope="col">Check</th><th scope="col" class="num">Duración</th><th scope="col">Estado</th></tr></thead>
+            <tbody>
+                <tr><td data-label="Check">BASE-FRESH-LOAD</td><td class="num" data-label="Duración">142 ms</td><td data-label="Estado"><span class="badge badge--fail">✗ FAIL</span></td></tr>
+                <tr><td data-label="Check">DISCOUNT-10</td><td class="num" data-label="Duración">52 ms</td><td data-label="Estado"><span class="badge badge--ok">✓ PASS</span></td></tr>
+            </tbody>
+        </table>
+    </div>
+</section>
+
+<section class="card card--lg animate-in" style="margin-top:24px;">
+    <h2 class="card__title">Formulario</h2>
+    <div class="secret-warning"><div>Advertencia: evita pegar secretos o credenciales.</div></div>
+    <div class="field">
+        <label for="kit-input">Nombre del requisito</label>
+        <input class="input" id="kit-input" type="text" placeholder="El carrito debe aplicar descuentos">
+    </div>
+    <div class="field field--error">
+        <label for="kit-input-err">URL de la app</label>
+        <input class="input" id="kit-input-err" type="text" value="no-es-una-url">
+        <p class="field__error">Formato de URL no válido</p>
+    </div>
+    <div class="field">
+        <label for="kit-ta">Stack trace / log</label>
+        <textarea class="textarea clean-zone" id="kit-ta" placeholder="TypeError: Cannot read properties of undefined (reading 'find')"></textarea>
+        <p class="hint">El contenido que pegues aquí es tratado como texto no confiable.</p>
+    </div>
+</section>
+
+<section class="card card--lg animate-in" style="margin-top:24px;">
+    <h2 class="card__title">Zona limpia (visor de código)</h2>
+    <div class="code-view" role="figure" aria-label="Ejemplo de código con tema propio">
+        <table><tbody>
+            <tr><td class="line-num">26</td><td><span class="syn-kw">if</span> <span class="syn-op">(</span>!<span class="syn-fn">this.cart</span><span class="syn-op">)</span> <span class="syn-kw">return</span><span class="syn-op">;</span></td></tr>
+            <tr class="line-cited-row"><td class="line-num">27</td><td><span class="syn-kw">const</span> item = <span class="syn-fn">this.cart.find</span><span class="syn-op">(</span>p <span class="syn-op">=></span> p.id <span class="syn-op">===</span> <span class="syn-num">id</span><span class="syn-op">)</span><span class="syn-op">;</span></td></tr>
+            <tr><td class="line-num">28</td><td><span class="syn-comment">// TODO: aplicar exclusión de cupón</span></td></tr>
+        </tbody></table>
+    </div>
+</section>
+
+<section class="card card--lg animate-in" style="margin-top:24px;">
+    <h2 class="card__title">Acordeón + Tabs</h2>
+    <div class="tabs" role="tablist">
+        <button class="tab" role="tab" aria-selected="true" type="button">Explicar</button>
+        <button class="tab" role="tab" aria-selected="false" type="button">Revisar</button>
+    </div>
+    <details class="acc" style="margin-top:16px;">
+        <summary>fin&#8209;01 · ALTA · LOGICA</summary>
+        <div class="acc__body">
+            <p class="card__meta"><span class="badge badge--fail">ALTA</span> <span class="provenance provenance--mock">Dato de ejemplo</span></p>
+            <p><strong>Evidencia:</strong> this.cart.find(...) — no existe this.cart en el scope.</p>
+            <p class="ai-tag">Recomendación de IA · requiere validación humana</p>
+        </div>
+    </details>
+</section>
+
+<section class="card card--lg animate-in" style="margin-top:24px;">
+    <h2 class="card__title">Loader</h2>
+    <div class="skeleton skeleton--title"></div>
+    <div class="skeleton skeleton--text" style="width:90%"></div>
+    <div class="skeleton skeleton--text" style="width:75%"></div>
+    <div class="skeleton skeleton--card"></div>
+    <p style="display:flex;align-items:center;gap:8px;margin-top:16px;">
+        <span class="spin" style="display:inline-block;">◔</span> <span class="mono-label">EJECUTANDO CHECKS…</span>
+    </p>
+</section>
+</bx:output>
