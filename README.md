@@ -2,11 +2,112 @@
 
 **Menos frustración. Más soluciones comprobadas.**
 
-SuckLess es un agente construido con BoxLang AI que transforma requerimientos incompletos en especificaciones verificables. Detecta información faltante o ambigua, formula preguntas concretas, genera criterios de aceptación y conecta esos criterios con pruebas ejecutables. El proyecto combina una capa de agentes con un motor Node controlado que exige evidencia antes de afirmar que algo funciona.
+SuckLess convierte requerimientos incompletos en especificaciones verificables y ayuda a diagnosticar, explicar y revisar código. Combina una aplicación de entrevista en BoxLang AI con un motor Node.js que comprueba resultados mediante pruebas ejecutadas.
 
-## Reto
+> **Aclarar → Diagnosticar → Probar → Verificar**
+> No adivinamos. Lo demostramos.
 
-Challenge 10 — **THIS SUCKS**
+Proyecto del reto 10 (*This Sucks*) del hackathon ANIA × BoxLang AI.
+
+## Cómo está organizado el proyecto
+
+El repositorio reúne dos partes complementarias:
+
+1. **Requirement Gate en BoxLang** (`src/`, `config/`, `prompts/`, `schemas/`): entrevista a la persona usuaria, evalúa el requerimiento y genera un reporte Markdown. Usa BoxLang AI y puede conectarse a OpenAI o a Ollama.
+2. **Motor de evidencia en Node.js** (`engine/`, `agents/`, `kit/`, `panel/`): administra requisitos, análisis de código, ejecución de pruebas, historial y reportes. Los agentes de BoxLang pueden orquestar este motor, pero la aprobación del requisito sigue siendo humana y el resultado PASS/FAIL lo determina el runner.
+
+La separación entre `prompts/` y `kit/prompts/` es intencional: el primer directorio contiene el prompt de la aplicación BoxLang; el segundo contiene instrucciones para los agentes que operan sobre el motor Node.
+
+## Inicio rápido
+
+### Motor Node.js
+
+Requiere Node.js **22.13 o posterior**. No necesita instalar dependencias npm.
+
+```bash
+node -v
+npm test
+npm run demo
+```
+
+Para abrir el panel local:
+
+```bash
+npm run panel
+```
+
+El panel escucha en `http://127.0.0.1:4173`.
+
+### CLI del motor
+
+Los comandos se ejecutan desde la raíz:
+
+```bash
+npm run cli -- <comando>
+```
+
+| Comando | Qué hace |
+|---|---|
+| `req start "<texto>"` | Abre un requisito y muestra la información pendiente |
+| `req answer <id> --set combinable=no` | Registra respuestas explícitas del equipo |
+| `req approve <id> --by "Nombre"` | Registra la aprobación humana |
+| `verify [--req <id>] [--target buggy\|fixed\|both]` | Ejecuta las pruebas disponibles |
+| `trace` / `debug --log <archivo>` | Analiza una traza o un error |
+| `explain <función>` | Explica estáticamente el flujo de una función |
+| `review <archivo>… [--req <id>]` | Revisa código y presenta hallazgos con evidencia |
+| `history list\|show\|delete` / `report <id>` | Consulta el historial o genera un reporte |
+
+## Ejecutar el Requirement Gate de BoxLang
+
+Requiere BoxLang y el módulo `bx-ai`. Para OpenAI, configura `OPENAI_API_KEY` en `.env` a partir del ejemplo:
+
+```bash
+install-bx-module bx-ai --local
+cp .env.example .env
+boxlang --bx-config config/boxlang.json src/SuckLess.bxs
+```
+
+Como alternativa, con Ollama instalado y activo:
+
+```bash
+ollama pull qwen3:4b-instruct
+boxlang --bx-config config/boxlang.ollama.json src/SuckLess.bxs
+```
+
+La configuración de Ollama usa `qwen3:4b-instruct`; ajusta el modelo en `config/boxlang.ollama.json` si necesitas uno más pequeño. La aplicación conduce una entrevista y guarda el resultado en `output/`.
+
+## Ejemplo de evidencia
+
+`demo-store/` contiene errores intencionales y `demo-store-fixed/` la versión de referencia corregida. En la demo documentada, la versión defectuosa obtuvo **3 PASS, 4 FAIL y 1 ERROR**; la corregida obtuvo **8/8 PASS**.
+
+El runner ejecuta las comprobaciones en un proceso hijo con límite de tiempo y entorno acotado. PASS/FAIL proviene de la ejecución, no de una respuesta generada por el modelo. Debug, Explain y Review son análisis estáticos deterministas; sus hallazgos no sustituyen las pruebas.
+
+## Estructura
+
+```text
+agents/             Agentes BoxLang AI que orquestan el motor Node
+config/             Configuración del módulo bx-ai para OpenAI y Ollama
+demo-store/         Mini tienda con fallos sembrados y sus checks
+demo-store-fixed/   Referencia corregida para la comparación
+docs/               Documentación de arquitectura
+engine/             CLI y núcleo Node: requisitos, runner, debug y review
+examples/           Requerimientos de ejemplo para la entrevista
+kit/                Prompts y criterios de revisión del motor Node
+panel/              Servidor local e interfaz de evidencias
+prompts/            Prompt del Requirement Gate de BoxLang
+schemas/             Esquema de respuesta estructurada de BoxLang AI
+scripts/            Demo guiada
+src/                Aplicación Requirement Gate de BoxLang
+test/               Pruebas del motor Node
+```
+
+## Alcance y estado
+
+- Las pruebas ejecutables incluidas se enfocan en la demo de descuentos/cupones; el Requirement Gate puede documentar otros dominios, pero no genera checks automáticamente para todos ellos.
+- El runner usa Node y `node:assert`; Playwright no es una dependencia del MVP.
+- El panel es local y escucha solo en `127.0.0.1`. El proyecto no ofrece autenticación multiusuario ni integración directa con GitHub o Jira.
+- No se aplican correcciones automáticamente; las recomendaciones requieren revisión humana.
+- La aplicación `src/SuckLess.bxs` y la configuración de proveedores forman el prototipo de entrevista. La orquestación `agents/` sobre el motor Node debe considerarse experimental hasta validarse en el runtime BoxLang objetivo.
 
 ## Equipo
 
@@ -14,126 +115,3 @@ Challenge 10 — **THIS SUCKS**
 - Kevin Fonseca
 - Felicito Escobar
 - Diego Novoa
-
-## MVP
-
-1. Recibir un requerimiento en texto libre.
-2. Evaluar su claridad y completitud.
-3. Preguntar por la información faltante.
-4. Generar un requerimiento estructurado.
-5. Solicitar aprobación humana.
-6. Producir criterios de aceptación verificables.
-7. Ejecutar pruebas y generar un reporte con evidencia.
-
-## Filosofía del proyecto
-
-```text
-Aclarar → Diagnosticar → Probar → Verificar
-No adivinamos. Lo demostramos.
-```
-
-El sistema no “cree” que una solución funciona. Primero define el requisito, valida la información faltante, genera pruebas desde ese criterio aprobado y solo después ejecuta el runner para comprobar el resultado real.
-
-## Inicio rápido
-
-### Requisitos
-
-- Node >= 22.13
-- BoxLang 1.18 o posterior (para la capa de agentes)
-- Si se usa OpenAI, tener API key disponible
-
-### Instalación y pruebas del motor
-
-```bash
-node -v
-npm test
-npm run demo
-npm run panel
-```
-
-CLI del motor (`npm run cli -- <comando>`):
-
-| Comando | Qué hace |
-|---|---|
-| `req start "<texto>"` | Abre un requisito y muestra las preguntas pendientes |
-| `req answer <id> --set combinable=no …` | Registra respuestas del equipo |
-| `req approve <id> --by "Nombre"` | Solo una persona aprueba |
-| `verify [--req <id>] [--target buggy\|fixed\|both]` | Ejecuta pruebas antes/después |
-| `trace` / `debug --log <archivo>` | Traza real con diagnóstico basado en evidencia |
-| `explain <función>` / `review <archivo>… [--req <id>]` | Explicador y revisión del código |
-| `history list\|show\|delete` / `report <id>` | Historial y reportes `.md` |
-
-### Instalación de BoxLang AI
-
-```bash
-install-bx-module bx-ai --local
-cp .env.example .env
-```
-
-Agrega tu API key en `.env` y ejecuta:
-
-```bash
-boxlang --bx-config config/boxlang.json src/SuckLess.bxs
-```
-
-### Alternativa local con Ollama
-
-Ollama permite ejecutar SuckLess sin una API key ni créditos de OpenAI.
-
-```bash
-ollama pull qwen3:4b-instruct
-ollama list
-boxlang --bx-config config/boxlang.ollama.json src/SuckLess.bxs
-```
-
-La aplicación entrevista al usuario hasta completar el requerimiento y guarda el resultado en `output/`.
-
-## Qué hace cada pieza y cómo se comprueba
-
-| Función | Implementación | Verificación |
-|---|---|---|
-| Requirements Gate | `engine/requirements.js` recoge preguntas por campo faltante y decisión de negocio | tests 2–4 |
-| Pruebas desde criterios aprobados | Solo se generan si el requisito está aprobado y no cambió | tests 4–5 |
-| Ejecutor controlado | `engine/runner.js` + `check-host.mjs` con proceso hijo, tiempo límite y entorno mínimo | tests 5–6 |
-| Debug | `engine/debug.js` parsea trazas reales y localiza `archivo:línea` sospechosos | tests 7–10 |
-| Code Explainer | `engine/explain.js` analiza flujo y llamadas | test 11 |
-| Code Review | `engine/review.js` aplica reglas con severidad, evidencia e impacto | tests 12–14 |
-| Historial | `engine/history.js` guarda registros y artefactos en SQLite | test 15 |
-| Privacidad | `engine/redact.js` oculta tokens, claves, JWT, passwords y URLs con credenciales | tests 1, 10, 17 |
-| Panel | `panel/` muestra requisitos, debug, explicar, revisar y verificar | validación manual de la API |
-
-## Demo
-
-`demo-store/` es una tienda con errores sembrados a propósito; `demo-store-fixed/` es su versión corregida de referencia. Tras aprobar el requisito de descuentos, la versión con error reporta 3 PASS, 4 FAIL y 1 ERROR; la versión corregida llega a 8/8 PASS.
-
-## Capa de agentes BoxLang (`agents/`)
-
-`agents/suckless.bxs` define tres agentes (`RequirementsGate`, `DebugTriage`, `CodeReviewer`) y un orquestador `SuckLess` con `aiAgent()` / `aiTool()` de [bx-ai](https://github.com/ortus-boxlang/bx-ai). Las herramientas son envoltorios acotados sobre la CLI; los agentes no tienen herramienta de aprobación.
-
-## Tecnología
-
-- BoxLang
-- BoxLang AI / BX Agents
-- Node.js puro para el motor de prueba
-- SQLite para historial
-- Playwright opcional para pruebas ejecutables de UI cuando se desee ampliar el dominio
-
-## Estructura
-
-```text
-agents/        Agentes BoxLang AI
-config/        Configuración de BoxLang AI
-engine/        Núcleo del proyecto: requisitos, runner, debug, explain, review, historial y reportes
-kit/           Prompts y criterios reutilizables
-demo-store/    Mini tienda con errores sembrados
-demo-store-fixed/  Versión corregida
-panel/         Servidor local + interfaz de evidencia
-scripts/       Demo guiada
-src/           Aplicación BoxLang del repositorio remoto
-test/          Pruebas del motor
-```
-
-## Estado
-
-MVP en desarrollo para el Hackathon ANIA × BoxLang AI, con un motor verificable funcionando por pruebas ejecutadas, y una capa de agentes que ayuda a clarificar, priorizar y describir, pero nunca reemplaza la evidencia.
->>>>>>> 32751f3 (Initial import of SuckLess project)
