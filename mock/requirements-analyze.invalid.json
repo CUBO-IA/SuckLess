@@ -1,0 +1,4 @@
+ Este archivo NO es JSON válido; se sirve para probar el manejo de "payload
+ corrupto/malformado" que el plan pide como caso de error. api.js debe
+ rechazarlo con ApiError code=EMPTY_RESPONSE (o UPSTREAM_5XX), nunca crashear
+ con SyntaxError crudo ni pintar basura en pantalla.

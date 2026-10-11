@@ -4,14 +4,29 @@
   "approvedAt": "2026-10-10T14:05:12Z",
   "approvedBy": "Beatriz Fuentes",
   "document": {
-    "title": "Descuentos en el carrito",
     "objective": "El carrito aplica descuentos por porcentaje o cupón según las reglas acordadas al responder la entrevista.",
+    "actor": "Persona compradora",
+    "behavior": "El carrito recalcula el total al aplicar el descuento o el cupón.",
+    "inputs": [
+      "Lista de productos con cantidad",
+      "Porcentaje de descuento",
+      "Código de cupón"
+    ],
     "rules": [
       "Los descuentos no se aplican a productos con precio ya rebajado.",
       "Un cupón no puede combinarse con otro cupón."
     ],
+    "errors": [
+      "Cupón vencido o inexistente",
+      "Porcentaje de descuento no soportado"
+    ],
     "acceptanceCriteria": [
       "Dado un carrito con 2 productos de 100 y un cupón -10%, el total debe ser 180."
+    ],
+    "edgeCases": [
+      "Aplicar cupón en carrito vacío",
+      "Aplicar descuento sobre un producto ya rebajado",
+      "Cupón + descuento simultáneos (debe excluirse uno)"
     ]
   }
 }

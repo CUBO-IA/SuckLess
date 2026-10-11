@@ -4,7 +4,7 @@
   "title": "Descuentos en el carrito",
   "status": "APPROVED",
   "createdAt": "2026-10-10T12:02:00Z",
-  "document": {
+  "requirement": {
     "id": "req_01J8Z3F0Y9Q2GBD9X3V5Q8N7B2",
     "status": "APPROVED",
     "approvedAt": "2026-10-10T14:05:12Z",
@@ -12,16 +12,31 @@
     "questions": [],
     "missingFields": [],
     "document": {
-      "title": "Descuentos en el carrito",
       "objective": "El carrito aplica descuentos por porcentaje o cupón según las reglas acordadas al responder la entrevista.",
+      "actor": "Persona compradora",
+      "behavior": "El carrito recalcula el total al aplicar el descuento o el cupón.",
+      "inputs": [
+        "Lista de productos con cantidad",
+        "Porcentaje de descuento",
+        "Código de cupón"
+      ],
       "rules": [
         "Los descuentos no se aplican a productos con precio ya rebajado.",
         "Un cupón no puede combinarse con otro cupón."
       ],
+      "errors": [
+        "Cupón vencido o inexistente",
+        "Porcentaje de descuento no soportado"
+      ],
       "acceptanceCriteria": [
         "Dado un carrito con 2 productos de 100 y un cupón -10%, el total debe ser 180."
+      ],
+      "edgeCases": [
+        "Aplicar cupón en carrito vacío",
+        "Aplicar descuento sobre un producto ya rebajado",
+        "Cupón + descuento simultáneos (debe excluirse uno)"
       ]
     }
   },
-  "report": "# Requisito: Descuentos en el carrito\n\n**Estado:** Aprobado por Beatriz Fuentes.\n\n## Reglas\n1. Los descuentos no se aplican a productos con precio ya rebajado.\n2. Un cupón no puede combinarse con otro cupón.\n\n## Criterios de aceptación\n- Dado un carrito con 2 productos de 100 y un cupón -10%, el total debe ser 180.\n"
+  "report": "# Requisito: Descuentos en el carrito\n\n**Estado:** Aprobado por Beatriz Fuentes.\n\n## Reglas\n1. Los descuentos no se aplican a productos con precio ya rebajado.\n2. Un cupón no puede combinarse con otro cupón.\n\n## Criterios de aceptación\n- Dado un carrito con 2 productos de 100 y un cupón -10%, el total debe ser 180.\n\n## Casos límite\n- Aplicar cupón en carrito vacío.\n- Aplicar descuento sobre un producto ya rebajado.\n- Cupón + descuento simultáneos (debe excluirse uno).\n"
 }

@@ -2,17 +2,35 @@
   "id": "run_01J8Z3F2B3C4D5E6F7G8H9I0J1",
   "status": "FAIL",
   "target": "both",
+  "requirementId": null,
   "checks": [
-    { "name": "BASE-FRESH-LOAD", "status": "FAIL", "durationMs": 142 },
-    { "name": "DISCOUNT-10", "status": "PASS", "durationMs": 52 },
-    { "name": "DISCOUNT-15", "status": "PASS", "durationMs": 48 },
-    { "name": "COUPON-EXCLUSIVE", "status": "FAIL", "durationMs": 61 },
-    { "name": "COUPON-STALE-PRICE", "status": "FAIL", "durationMs": 55 },
-    { "name": "CART-NEGATIVE-QTY", "status": "FAIL", "durationMs": 44 },
-    { "name": "PRICE-BAD-INPUT", "status": "ERROR", "durationMs": 12 },
-    { "name": "TOTAL-CORE", "status": "PASS", "durationMs": 71 }
+    { "name": "BASE-FRESH-LOAD", "status": "FAIL", "durationMs": 142,
+      "error": "TypeError: Cannot read properties of undefined (reading 'find') at addItem (cart.js:27)" },
+    { "name": "DISCOUNT-10", "status": "PASS", "durationMs": 52, "error": null },
+    { "name": "DISCOUNT-15", "status": "PASS", "durationMs": 48, "error": null },
+    { "name": "COUPON-EXCLUSIVE", "status": "FAIL", "durationMs": 61,
+      "error": "Se aplicaron dos cupones activos; solo se permite uno" },
+    { "name": "COUPON-STALE-PRICE", "status": "FAIL", "durationMs": 55,
+      "error": "Se aplicó el descuento a un producto con precio rebajado" },
+    { "name": "CART-NEGATIVE-QTY", "status": "FAIL", "durationMs": 44,
+      "error": "El total permitió cantidades negativas" },
+    { "name": "PRICE-BAD-INPUT", "status": "EXECUTOR_ERROR", "durationMs": 12,
+      "error": "El check no pudo correr: input inválido en la corrida" },
+    { "name": "TOTAL-CORE", "status": "PASS", "durationMs": 71, "error": null }
   ],
   "summary": { "pass": 3, "fail": 4, "error": 1 },
-  "trace": "TypeError: Cannot read properties of undefined (reading 'find')\n    at addItem (demo-store/src/cart.js:27)\n    at Layer.handle (demo-store/src/server.js:80)\n",
-  "screenshots": []
+  "durationMs": 2140,
+  "trace": {
+    "steps": [
+      { "action": "goto", "selector": "/", "durationMs": 210, "error": null },
+      { "action": "click", "selector": "button[data-add='SKU-1']", "durationMs": 45, "error": null },
+      { "action": "click", "selector": "button[data-coupon]", "durationMs": 38,
+        "error": "TypeError: Cannot read properties of undefined (reading 'find')" }
+    ],
+    "downloadUrl": "/mock/executor-trace.zip"
+  },
+  "screenshots": [
+    { "checkName": "BASE-FRESH-LOAD", "url": "/mock/screenshots/BASE-FRESH-LOAD.png" }
+  ],
+  "aiInterpretation": "El fallo de COUPON-EXCLUSIVE sugiere que la exclusión mutua entre cupón y descuento no se evalúa al agregar el segundo. Verificar con la regla acordada en la entrevista. Interpretación de IA: no determina el resultado."
 }

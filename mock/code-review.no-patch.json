@@ -1,0 +1,18 @@
+{
+  "id": "rev_01J8Z3F4D5E6F7G8H9I0J1K2L3",
+  "status": "FINDINGS",
+  "findings": [
+    {
+      "id": "fin_04",
+      "severity": "MEDIA",
+      "category": "SEGURIDAD",
+      "file": null,
+      "lines": null,
+      "evidence": "El endpoint de precios no valida el tipo del parámetro rate",
+      "impact": "Entrada malformada puede provocar NaN en totales",
+      "recommendation": "Validar typeof rate === 'number' y rechazar NaN en el handler de precios.",
+      "patch": null,
+      "proven": false
+    }
+  ]
+}

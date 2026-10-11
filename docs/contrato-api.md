@@ -96,15 +96,19 @@ Recibe el texto libre del requerimiento, devuelve la entrevista sugerida.
   ],
   "missingFields": ["scope_discount", "percentages", "coupon_policy"],
   "document": {
-    "title": "Descuentos en el carrito",
     "objective": "El carrito aplica descuentos...",
+    "actor": "Persona compradora",
+    "behavior": "El carrito recalcula el total al aplicar el descuento o cupón.",
+    "inputs": ["productos", "porcentaje de descuento", "código de cupón"],
     "rules": [
       "Los descuentos no se aplican a productos con precio ya rebajado.",
       "Un cupón no puede combinarse con otro cupón."
     ],
+    "errors": ["cupón vencido", "porcentaje no soportado"],
     "acceptanceCriteria": [
       "Dado un carrito con 2 productos de 100 y un cupón -10%, el total debe ser 180."
-    ]
+    ],
+    "edgeCases": ["carrito vacío con cupón", "descuento sobre producto ya rebajado"]
   }
 }
 ```
@@ -118,7 +122,7 @@ Recibe el texto libre del requerimiento, devuelve la entrevista sugerida.
 | `questions[].text` / `.category` | string | category = `business` \| `technical` \| `scope` \| `acceptance`. |
 | `questions[].answered` / `.answer` | bool / string·null | Estado; el frontend no los recalcula. |
 | `missingFields[]` | array de strings | IDs de `questions[]` aún sin responder. |
-| `document` | object | Síntesis del requisito; puede ser parcial si `status=INCOMPLETE`. |
+| `document` | object | Síntesis estructurada del requisito con claves **fijas**: `objective`, `actor`, `behavior`, `inputs`, `rules`, `errors`, `acceptanceCriteria`, `edgeCases`. Puede venir parcial (`null`/`[]`) si `status=INCOMPLETE`. **Obligatorios al aprobar:** `objective`, `acceptanceCriteria`, `edgeCases` — bloquean la aprobación si faltan. Los demás son opcionales. |
 
 ### 2.2 `POST /api/requirements/approve`
 
@@ -141,6 +145,8 @@ Registra la aprobación humana de un requisito. **Es la única vía para cambiar
   "document": { "title": "Descuentos en el carrito", "objective": "..." }
 }
 ```
+
+> El `document` de la respuesta de approve sigue el mismo esquema de claves fijas que en §2.1 (puede resumirse).
 
 **Errores típicos**
 
@@ -212,38 +218,102 @@ Ejecuta los checks definidos en el backend contra una versión del código (la b
 | `target` | string | `buggy` \| `fixed` \| `both` (default `both`). |
 | `requirementId` | string·null | Opcional; si viene aprobado, el ejecutor valida checks del requisito. |
 
-**Response 200**
+**Response 200 (inmediato: la corrida se creó y está en cola o ya avanzó)**
 
 ```json
 {
   "id": "run_01J8Z3F0Y9Q2GBD9X3V5Q8N7B2",
-  "status": "PASS",
+  "status": "QUEUED",
   "target": "both",
-  "checks": [
-    { "name": "BASE-FRESH-LOAD", "status": "FAIL", "durationMs": 142 },
-    { "name": "COUPON-EXCLUSIVE", "status": "PASS", "durationMs": 38 }
-  ],
-  "summary": { "pass": 3, "fail": 4, "error": 1 },
-  "trace": "TypeError: Cannot read properties of undefined (reading 'find')\n    at addItem (cart.js:27)...",
-  "screenshots": []
+  "requirementId": null,
+  "checks": [],
+  "summary": { "pass": 0, "fail": 0, "error": 0 },
+  "durationMs": null,
+  "trace": { "steps": [], "downloadUrl": null },
+  "screenshots": [],
+  "aiInterpretation": null
 }
 ```
 
+**Mismo shape en `GET /api/executor/run/{id}`** — cada respuesta trae el `status` global y **todos** los `checks[]` acumulados hasta el momento; el frontend no depende de eventos parciales.
+
 | Campo | Tipo | Descripción |
 |---|---|---|
-| `id` | string | ID de la ejecución; sirve para `GET /api/executor/run/{id}`. |
-| `status` | string | `PASS` \| `FAIL` \| `ERROR` — **solo** desde el ejecutor; el frontend lo pinta tal cual. |
-| `checks[]` | array | Cada check con su status individual (`PASS`/`FAIL`/`ERROR`) y `durationMs`. |
-| `summary` | object | `pass`/`fail`/`error`. El frontend lo muestra, no lo recalcula. |
-| `trace` | string·null | Log crudo de la ejecución; el frontend lo muestra en <pre> con `textContent`. |
-| `screenshots[]` | array | Rutas lista; el MVP puede venir vacío. |
+| `id` | string | ID de la corrida; sirve para el polling de §2.5. |
+| `status` | string | `QUEUED` · `RUNNING` · `PASS` · `FAIL` · `EXECUTOR_ERROR` — **solo** desde el ejecutor; el frontend lo pinta tal cual. |
+| `checks[]` | array | Cada check con `status` individual (`QUEUED` · `RUNNING` · `PASS` · `FAIL` · `EXECUTOR_ERROR`), `durationMs` (`null` mientras corre) y `error` (`string·null`, primer mensaje del fallo). |
+| `summary` | object | `pass`/`fail`/`error`; el frontend lo muestra, no lo recalcula. |
+| `durationMs` | int·null | `null` mientras corre; duración total al terminar. |
+| `trace` | object | `{ steps: [{action, selector, durationMs, error}], downloadUrl }` — pasos de la corrida y descarga de la traza. Puede venir vacío en MVP (checks de Node, sin Playwright). El frontend lo muestra en zona limpia; **no reimplementa el Trace Viewer**. |
+| `screenshots[]` | array | `{checkName, url}` por captura; puede ser `[]`. |
+| `aiInterpretation` | string·null | Texto de IA, opcional. Se muestra **solo** en el panel "Interpretación de la IA (no determina el resultado)", nunca junto al badge. |
+
 
 ### 2.5 `GET /api/executor/run/{id}`
 
-Reconsulta una ejecución previa (excerpt de historial; mismo schema que `2.4` Response 200). Útil si el `POST` tardó y el frontend quiere refrescar sin reejecutar.
+Reconsulta una corrida. **Es el endpoint del polling en vivo**: el frontend lo consulta cada 1–1,5 s mientras `status` sea `QUEUED` o `RUNNING`, y se detiene al llegar a `PASS`, `FAIL` o `EXECUTOR_ERROR`. La función `pollRun()` vive solo en `api.js` (cambiar a SSE en el futuro no toca la UI).
 
-- `200` con el mismo shape de `2.4`.
-- `404 NOT_FOUND` con `{ "error": { "code": "NOT_FOUND", "message": "..." } }` si el id no existe.
+**Response 200 en curso (ejemplo de respuesta del ciclo de polling):**
+
+```json
+{
+  "id": "run_01J8Z3F0Y9Q2GBD9X3V5Q8N7B2",
+  "status": "RUNNING",
+  "target": "both",
+  "requirementId": null,
+  "checks": [
+    { "name": "BASE-FRESH-LOAD", "status": "PASS", "durationMs": 142, "error": null },
+    { "name": "DISCOUNT-10", "status": "RUNNING", "durationMs": null, "error": null }
+  ],
+  "summary": { "pass": 1, "fail": 0, "error": 0 },
+  "durationMs": 1420,
+  "trace": { "steps": [], "downloadUrl": null },
+  "screenshots": [],
+  "aiInterpretation": null
+}
+```
+
+**Response 200 terminada (estado final del ejemplo de la demo):**
+
+```json
+{
+  "id": "run_01J8Z3F0Y9Q2GBD9X3V5Q8N7B2",
+  "status": "FAIL",
+  "target": "both",
+  "requirementId": null,
+  "checks": [
+    { "name": "BASE-FRESH-LOAD", "status": "FAIL", "durationMs": 142,
+      "error": "TypeError: Cannot read properties of undefined (reading 'find') at addItem (cart.js:27)" },
+    { "name": "DISCOUNT-10", "status": "PASS", "durationMs": 52, "error": null },
+    { "name": "COUPON-EXCLUSIVE", "status": "FAIL", "durationMs": 61,
+      "error": "Two active coupons were applied; only one is allowed" }
+  ],
+  "summary": { "pass": 3, "fail": 4, "error": 1 },
+  "durationMs": 2140,
+  "trace": {
+    "steps": [
+      { "action": "goto", "selector": "/", "durationMs": 210, "error": null },
+      { "action": "click", "selector": "button[data-add='SKU-1']", "durationMs": 45, "error": null },
+      { "action": "click", "selector": "button[data-coupon]", "durationMs": 38,
+        "error": "TypeError: Cannot read properties of undefined (reading 'find')" }
+    ],
+    "downloadUrl": "/api/executor/run/{id}/trace.zip"
+  },
+  "screenshots": [
+    { "checkName": "BASE-FRESH-LOAD", "url": "/mock/screenshots/BASE-FRESH-LOAD.png" }
+  ],
+  "aiInterpretation": "El check COUPON-EXCLUSIVE sugiere que..." 
+}
+```
+
+**Reglas de negocio del polling (para backend y frontend):**
+
+- Cada respuesta trae el `status` global y **todos** los `checks[]` acumulados; el frontend re-renderiza la lista completa en cada ciclo (no hay eventos incrementales ni estado parcial que reconstruir).
+- El `status` global solo es `PASS` cuando **todos** los checks están en `PASS`. Si hay **un** check en `FAIL` o `EXECUTOR_ERROR`, el global es `FAIL`/`EXECUTOR_ERROR`. El frontend nunca calcula el global por su cuenta.
+- `durationMs` es `null` mientras corre y el total real al terminar.
+- El frontend detiene el polling al llegar a estado terminal, tras un límite de 2 minutos, o al pulsar cancelar (cancelar = dejar de consultar, no interrumpe el backend).
+- `aiInterpretation` es opcional y siempre llega en el campo dedicado; el frontend lo muestra en el panel "Interpretación de la IA (no determina el resultado)", nunca junto al badge.
+- `trace.steps` y `screenshots` pueden venir vacíos en checks de Node (el MVP no usa Playwright); ambas son opcionales.
 
 ### 2.6 `POST /api/code/explain`
 
@@ -262,12 +332,19 @@ Explica estáticamente el flujo de una función o fichero.
   "id": "exp_01J8Z3F0Y9Q2GBD9X3V5Q8N7B2",
   "status": "OK",
   "symbol": "addItem",
-  "file": "demo-store/src/cart.js",
-  "lines": [21, 45],
   "summary": "Agrega un producto al carrito y recalcula totales.",
-  "flow": ["read moreItems", "read find product", "write items", "write totals"]
+  "steps": [
+    { "text": "Lee la lista de items del carrito", "file": "demo-store/src/cart.js", "lines": [22, 24] },
+    { "text": "Busca el producto por id", "file": "demo-store/src/cart.js", "lines": [26, 26] },
+    { "text": "Agrega el producto al array items", "file": "demo-store/src/cart.js", "lines": [28, 30] },
+    { "text": "Recalcula totales", "file": "demo-store/src/pricing.js", "lines": [12, 18] }
+  ]
 }
 ```
+
+| Campo | Tipo | Descripción |
+|---|---|---|
+| `steps[]` | array | Pasos ordenados con `{text, file, lines}`. El frontend construye la referencia `archivo:línea` y la hace clicable hacia el visor de código. Un paso puede omitir `file/lines` (`null`); se muestra igual, sin enlace. |
 
 - `404 NOT_FOUND` si el símbolo no existe en el código fuente indexado.
 
@@ -295,13 +372,15 @@ Revisa código y produce hallazgos con evidencia, impacto, recomendación y patc
   "findings": [
     {
       "id": "fin_01",
-      "severity": "high",
+      "severity": "ALTA",
+      "category": "LOGICA",
       "file": "demo-store/src/cart.js",
       "lines": [27, 31],
       "evidence": "this.cart.find(...) — no existe this.cart en el scope",
       "impact": "TypeError en runtime al agregar producto",
       "recommendation": "Usar this.items en lugar de this.cart",
-      "patch": "this.items.find(p => p.id === id)"
+      "patch": { "format": "diff", "language": "javascript", "content": "- this.cart.find(p => p.id === id)\n+ this.items.find(p => p.id === id)" },
+      "proven": false
     }
   ]
 }
@@ -310,9 +389,11 @@ Revisa código y produce hallazgos con evidencia, impacto, recomendación y patc
 | Campo | Tipo | Descripción |
 |---|---|---|
 | `status` | string | `OK` (sin hallazgos) \| `FINDINGS` |
-| `findings[].severity` | string | `high` \| `medium` \| `low` \| `info` |
-| `findings[].lines` | [int, int] | `[inicio, fin]`, 1-based. |
-| `patch` | string·null | Sugerencia textual; el frontend lo muestra como texto en `<code>`; **nunca lo aplica** (el MVP no aplica parches). |
+| `findings[].severity` | string | `ALTA` · `MEDIA` · `BAJA` (mapa visual: ALTA=rojo, MEDIA=ámbar, BAJA=cian informativo).|
+| `findings[].category` | string | `LOGICA` · `SEGURIDAD` · `CALIDAD` |
+| `findings[].lines` | [int, int]·null | `[inicio, fin]`, 1-based; `null` si no aplica. **Un hallazgo sin `file/lines` se muestra igual sin romper el visor.** |
+| `findings[].patch` | object·null | `{format, language, content}`. `format = "diff"` → el frontend pinta `+`/`-` con símbolo visible (no solo color); `"text"` → código plano. El botón "Copiar parche" copia `content` tal cual; feedback "Copiado ✓" + fallback si falla el portapapeles. **Nunca se aplica solo:** etiqueta fija "Recomendación de IA · requiere validación humana". Sin parche, la tarjeta sigue mostrando la recomendación. |
+| `findings[].proven` | boolean | `true` si una prueba ejecutada demuestra el mismo problema ("Hallazgo demostrado"); `false` = "Sugerencia" (potencial hasta que una prueba lo pruebe). |
 
 ### 2.8 `GET /api/history?type=`
 
@@ -414,9 +495,24 @@ class ApiError extends Error {
 - Tabla de códigos idéntica a §1.2.
 - El mapeo HTTP → code está centralizado en `mapHttpStatusToCode`.
 
-### 3.4 Protocolo de respuesta: `wrap()`
+### 3.4 Polling aislado: `pollRun()`
 
-Helper `wrap()` toma una promise → devuelve `{ loading, error, data }`
+La consulta en vivo de una corrida vive **solo** en `api.js`, para poder migrar a SSE (u otro mecanismo) sin tocar la UI:
+
+```js
+import { pollRun } from './api.js';
+
+const stop = pollRun(runId, onSnapshot, { intervalMs: 1200, maxDurationMs: 120_000 });
+// onSnapshot(data) recibe TODOS los checks acumulados en cada cycle el ciclo completo;
+// se detiene al llegar a PASS/FAIL/EXECUTOR_ERROR, al vencer maxDurationMs (2 min)
+// o al llamar stop(). Errores transitorios de red se toleran (retry antes de fallar).
+```
+
+Cambiar a SSE más adelante = reescribir `pollRun` dentro de `api.js` con la misma firma; ningún módulo de UI cambia.
+
+### 3.6 Protocolo de respuesta: `wrap()`
+
+Helper `wrap()` toma una promise → devuelve `{ loading, error, data, isEmpty }`
 
 ```js
 import { api, wrap } from './api.js';
@@ -440,17 +536,19 @@ El módulo de UI llama `wrap()` y renderiza según el patrón:
 
 | Endpoint | Mocks |
 |---|---|
-| `POST /api/requirements/analyze` | `mock/requirements-analyze.ok.json`, `mock/requirements-analyze.empty.json` (sin questions), `mock/requirements-analyze.500.json`, `mock/requirements-analyze.timeout.json` (para reproducir timeout/latencia). |
-| `POST /api/requirements/approve` | `mock/requirements-approve.ok.json`, `mock/requirements-approve.error.json` (404). |
-| `POST /api/debug/analyze` | `mock/debug-analyze.ok.json`, `mock/debug-analyze.empty.json` (sin hipótesis), `mock/debug-analyze.500.json`. |
-| `POST /api/executor/run` | `mock/executor-run.ok.json` (FAIL real de la demo), `mock/executor-run.empty.json` (sin checks), `mock/executor-run.500.json`. |
-| `GET /api/executor/run/{id}` | `mock/executor-run.get.ok.json`, `mock/executor-run.get.404.json`. |
-| `POST /api/code/explain` | `mock/code-explain.ok.json`, `mock/code-explain.404.json` (símbolo inexistente). |
-| `POST /api/code/review` | `mock/code-review.ok.json`, `mock/code-review.empty.json` (0 hallazgos), `mock/code-review.500.json`. |
+| `POST /api/requirements/analyze` | `mock/requirements-analyze.ok.json` (document completo 8 claves fijas), `mock/requirements-analyze.empty.json` (todo nulo/vacío), `mock/requirements-analyze.500.json`, `mock/requirements-analyze.timeout.json` (para reproducir timeout/latencia), `mock/requirements-analyze.validation.json` (payload inválido), `mock/requirements-analyze.invalid.json` (**fixture no-JSON** para probar el parser; api.js lo rechaza como EMPTY_RESPONSE en modo real). |
+| `POST /api/requirements/approve` | `mock/requirements-approve.ok.json` (status APPROVED + document completo), `mock/requirements-approve.error.json` (404/validación). |
+| `POST /api/debug/analyze` | `mock/debug-analyze.ok.json` (hipótesis con evidencia archivo+líneas), `mock/debug-analyze.empty.json` (sin hipótesis), `mock/debug-analyze.500.json`, `mock/debug-analyze.validation.json`. |
+| `POST /api/executor/run` | `mock/executor-run.queued.json` (QUEUED inicial; el mock lo devuelve), `mock/executor-run.ok.json` (FAIL real 3/4/1 con trace.steps, screenshots y aiInterpretation), `mock/executor-run.empty.json` (PASS sin checks), `mock/executor-run.500.json`. |
+| `GET /api/executor/run/{id}` | **Ciclo simulado de polling:** 1.º GET → `executor-run.running.json` (RUNNING, checks acumulados parcialmente), 2.º GET y siguientes → `executor-run.ok.json` (FAIL terminal). Esto permite desarrollar y probar `pollRun()` sin backend. Excepción: id terminado en `404` → `mock/executor-run.get.404.json`. |
+| `POST /api/code/explain` | `mock/code-explain.ok.json` (steps[{text,file,lines}]), `mock/code-explain.404.json` (símbolo inexistente). |
+| `POST /api/code/review` | `mock/code-review.ok.json` (ALTA/MEDIA/BAJA, category, patch {format,language,content}, proven), `mock/code-review.empty.json` (0 hallazgos), `mock/code-review.no-patch.json` (hallazgo sin file/lines/patch: la tarjeta se muestra igual), `mock/code-review.500.json`. |
 | `GET /api/history?type=` | `mock/history.ok.json` (varios tipos), `mock/history.empty.json` []. |
-| `GET /api/history/{id}` | `mock/history-detail.verify.json`, `mock/history-detail.debug.json`, `mock/history-detail.requirements.json`, `mock/history-detail.404.json`. |
+| `GET /api/history/{id}` | `mock/history-detail.verify.json` (run con trace objeto y screenshots), `mock/history-detail.debug.json`, `mock/history-detail.requirements.json` (requirement con document completo de 8 claves), `mock/history-detail.404.json` (id con terminación "404"). |
 | `DELETE /api/history/{id}` | `mock/history-delete.ok.json`. |
-| `GET /api/history/{id}/export` | `mock/history-export.md` (texto Markdown, no JSON; api.js lo trae como Blob/otro MIME). |
+| `GET /api/history/{id}/export` | `mock/history-export.md` (texto Markdown, no JSON; api.js lo trae como texto crudo para descarga). |
+
+Nota: `mock/screenshots/*.png` y `mock/executor-trace.zip` son referenciados por URL en los executor mocks; crear fixtures placeholder al implementar la Etapa 5 (galería de capturas y descarga de traza).
 
 ### 4.1 Convención de nombres
 

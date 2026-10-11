@@ -1,0 +1,16 @@
+{
+  "id": "run_01J8Z3F2B3C4D5E6F7G8H9I0J1",
+  "status": "RUNNING",
+  "target": "both",
+  "requirementId": null,
+  "checks": [
+    { "name": "BASE-FRESH-LOAD", "status": "PASS", "durationMs": 142, "error": null },
+    { "name": "DISCOUNT-10", "status": "PASS", "durationMs": 52, "error": null },
+    { "name": "COUPON-EXCLUSIVE", "status": "RUNNING", "durationMs": null, "error": null }
+  ],
+  "summary": { "pass": 2, "fail": 0, "error": 0 },
+  "durationMs": 1420,
+  "trace": { "steps": [], "downloadUrl": null },
+  "screenshots": [],
+  "aiInterpretation": null
+}

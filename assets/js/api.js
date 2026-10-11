@@ -15,8 +15,10 @@ export const USE_MOCK = true;
 
 const DEFAULT_TIMEOUT_MS = 15_000;
 
-// Simulación de latencia de red para que los estados de loading sean reales.
+// Simulación de latencia de red base (300–1200 ms con jitter) para que los
+// estados de loading sean visibles y realistas; ver mockFetch.
 const MOCK_DELAY_MS = 300;
+const MOCK_DELAY_MAX = 1200;
 
 const HTTP_TO_CODE = {
   400: 'VALIDATION',
@@ -110,8 +112,17 @@ const MOCK_ROUTES = [
     if (!body || typeof body.log !== 'string' || !body.log.trim()) return { status: 400, file: 'debug-analyze.validation.json' };
     return { status: 200, file: 'debug-analyze.ok.json' };
   }],
-  ['POST', /^\/api\/executor\/run$/, () => ({ status: 200, file: 'executor-run.ok.json' })],
-  ['GET', /^\/api\/executor\/run\/[^/]+$/, (_url, _body, url) => (url.endsWith('404') ? { status: 404, file: 'executor-run.get.404.json' } : { status: 200, file: 'executor-run.get.ok.json' })],
+  ['POST', /^\/api\/executor\/run$/, () => ({ status: 200, file: 'executor-run.queued.json' })],
+  ['GET', /^\/api\/executor\/run\/[^/]+$/, (_url, _body, url) => {
+    if (url.endsWith('404')) return { status: 404, file: 'executor-run.get.404.json' };
+    // Ciclo simulado para desarrollar el polling sin backend: el POST ya
+    // devolvió QUEUED; cada GET avanza RUNNING -> FAIL final y se queda ahí.
+    const key = 'poll-ahead:' + url;
+    const n = Number(globalThis.sessionStorage?.getItem(key) ?? 0);
+    globalThis.sessionStorage?.setItem(key, String(n + 1));
+    const file = n === 0 ? 'executor-run.running.json' : 'executor-run.ok.json';
+    return { status: 200, file };
+  }],
   ['POST', /^\/api\/code\/explain$/, (url, body) => {
     if (!body || typeof body.symbol !== 'string' || !body.symbol.trim()) return { status: 404, file: 'code-explain.404.json' };
     return { status: 200, file: 'code-explain.ok.json' };
@@ -155,13 +166,17 @@ async function mockFetch(method, fullUrl, body, signal) {
   const query = new URL(fullUrl, 'http://x').searchParams;
   // ?delay=NNN simula latencia prolongada (p. ej. ?delay=9999 fuerza un
   // timeout de cliente). No es parte del contrato; solo para probar errores.
-  const requestedDelay = Number(query.get('delay')) || MOCK_DELAY_MS;
+  const requestedDelay = Number(query.get('delay')) || 0;
+  // Latencia simulada: 0 + jitter [300, 1200) por defecto; ?delay=NNN lo suma
+  // (útil para forzar timeouts o cargas largas en pruebas). Puro client-side,
+  // no es parte del contrato.
+  const jitter = MOCK_DELAY_MS + Math.random() * (MOCK_DELAY_MAX - MOCK_DELAY_MS);
   for (const [m, re, resolve] of MOCK_ROUTES) {
     if (m !== method || !re.test(url)) continue;
     const out = resolve(url, body, fullUrl);
     // Delay abortable: si el timeout del cliente llega primero, cortamos aquí
     // y conTimeout mapea el abort a ApiError TIMEOUT sin esperar el resto.
-    await abortableDelay(requestedDelay + Math.random() * MOCK_DELAY_MS, signal).catch(() => {
+    await abortableDelay(requestedDelay + jitter, signal).catch(() => {
       if (signal?.aborted) throw new ApiError('TIMEOUT', 'La petición excedió el tiempo de espera.');
       throw new Error('aborted');
     });
@@ -254,6 +269,89 @@ export const apiPost = (path, body, opts = {}) => api(path, { ...opts, method: '
 
 /** Atajo para DELETE. */
 export const apiDelete = (path, opts = {}) => api(path, { ...opts, method: 'DELETE' });
+
+// ---------------------------------------------------------------------------
+// Polling en vivo (aislado en esta capa; cambiar a SSE no toca la UI)
+// ---------------------------------------------------------------------------
+
+const TERMINAL_RUN_STATUSES = new Set(['PASS', 'FAIL', 'EXECUTOR_ERROR']);
+
+/**
+ * Consulta en vivo una corrida del ejecutor.
+ *
+ * - Llama a GET /api/executor/run/{id} cada `intervalMs` (default 1200, rango
+ *   recomendado del plan: 1–1,5 s) mientras `status` sea QUEUED o RUNNING.
+ * - Se detiene al llegar a un estado terminal, al vencer `maxDurationMs`
+ *   (default 120_000 = 2 minutos del plan) o al invocar la función `stop()`
+ *   que devuelve (cancelar = dejar de consultar; no interrumpe el backend).
+ * - `onSnapshot(data)` recibe en cada ciclo TODOS los checks acumulados;
+ *   el frontend re-renderiza la lista completa, sin estado parcial.
+ * - Errores transitorios de red hasta `maxNetworkErrors` (default 3) se
+ *   toleran y se reintenta; un error 4xx (NOT_FOUND, VALIDATION) aborta.
+ *
+ * @param {string} runId
+ * @param {(data: object) => void} onSnapshot
+ * @param {{ intervalMs?: number, maxDurationMs?: number, maxNetworkErrors?: number, apiOpts?: object }} [opts]
+ * @returns {() => void} función stop()
+ */
+export function pollRun(runId, onSnapshot, {
+  intervalMs = 1200,
+  maxDurationMs = 120_000,
+  maxNetworkErrors = 3,
+  apiOpts = {},
+} = {}) {
+  let stopped = false;
+  let timer = null;
+  let lastError = null;
+  let networkErrors = 0;
+  const startedAt = Date.now();
+
+  async function tick() {
+    if (stopped) return;
+    try {
+      const { data } = await api(`/api/executor/run/${encodeURIComponent(runId)}`, {
+        method: 'GET',
+        // El timeout per-tick debe cubrir el jitter del mock (hasta 1200 ms): si
+        // fuese menor que el jitter, cada tick abortaría antes de recibir data.
+        timeoutMs: Math.max(2500, Math.min(apiOpts.timeoutMs ?? DEFAULT_TIMEOUT_MS, Math.max(intervalMs - 50, 0))),
+      });
+      networkErrors = 0;
+      lastError = null;
+      try { onSnapshot(data); } catch { /* la UI renderiza; nunca tumba el polling */ }
+      if (TERMINAL_RUN_STATUSES.has(data?.status)) return; // estado terminal: fin
+    } catch (e) {
+      if (stopped) return;
+      const transient = !(e instanceof ApiError) || !['NOT_FOUND', 'VALIDATION', 'OVERSIZED_BODY'].includes(e.code);
+      if (!transient) { onSnapshotError(e); return; }
+      networkErrors += 1;
+      lastError = e;
+      if (networkErrors > maxNetworkErrors) { onSnapshotError(lastError); return; }
+    }
+    scheduleNext();
+  }
+
+  function onSnapshotError(e) {
+    if (stopped) return;
+    stopped = true;
+    clearTimeout(timer);
+    try { onSnapshot({ pollError: e }); } catch { /* no propagar */ }
+  }
+
+  function scheduleNext() {
+    if (stopped) return;
+    if (Date.now() - startedAt >= maxDurationMs) {
+      onSnapshotError(new ApiError('TIMEOUT', 'La corrida superó los 2 minutos de espera del polling.'));
+      return;
+    }
+    timer = setTimeout(tick, intervalMs);
+  }
+
+  scheduleNext();
+  return () => {
+    stopped = true;
+    clearTimeout(timer);
+  };
+}
 
 /**
  * Envuelve una promise de api() para renderizado declarativo con
