@@ -1,0 +1,18 @@
+[
+  {
+    "id": "REQ-a1b2c3",
+    "type": "requirements",
+    "title": "El carrito debe aplicar descuentos",
+    "status": "APPROVED",
+    "createdAt": "2026-10-10T12:02:00Z",
+    "approvedBy": "Persona de prueba"
+  },
+  {
+    "id": "REQ-d4e5f6",
+    "type": "requirements",
+    "title": "El carrito debe conservar cupones",
+    "status": "INCOMPLETE",
+    "createdAt": "2026-10-10T11:15:00Z",
+    "approvedBy": null
+  }
+]

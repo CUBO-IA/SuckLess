@@ -1,6 +1,7 @@
 // assets/js/api.js — capa única de datos para todo el panel.
-// USE_MOCK=true sirve los JSON de /mock (Etapa 0). Al conectar el backend
-// real, poner USE_MOCK=false y ajustar las rutas si cambian. Los módulos de
+// El atributo data-suckless-demo de la vista controla los mocks (true por
+// defecto); el backend real se activa en vistas revisadas por el integrador.
+// Los módulos de
 // UI solo importan de aquí; nunca llaman a fetch por su cuenta.
 //
 // Reglas del contrato (docs/contrato-api.md):
@@ -11,7 +12,8 @@
 // - timeoutMs (default 15000): aborta y produce ApiError code=TIMEOUT.
 // - Respuestas sin cuerpo útil o JSON vacío producen code=EMPTY_RESPONSE.
 
-export const USE_MOCK = true;
+export const USE_MOCK = globalThis.SUCKLESS_USE_MOCK
+  ?? (globalThis.document?.documentElement?.dataset.sucklessDemo !== 'false');
 
 const DEFAULT_TIMEOUT_MS = 15_000;
 
@@ -110,6 +112,7 @@ const MOCK_ROUTES = [
     }
     return { status: 200, file: 'requirements-analyze.ok.json' };
   }],
+  ['GET', /^\/api\/requirements$/, () => ({ status: 200, file: 'requirements-list.json' })],
   ['POST', /^\/api\/requirements\/approve$/, (url, body) => {
     if (!body || typeof body.id !== 'string' || !body.id) return { status: 404, file: 'requirements-approve.error.json' };
     return { status: 200, file: 'requirements-approve.ok.json' };
@@ -119,6 +122,7 @@ const MOCK_ROUTES = [
     return { status: 200, file: 'debug-analyze.ok.json' };
   }],
   ['POST', /^\/api\/executor\/run$/, () => ({ status: 200, file: 'executor-run.queued.json' })],
+  ['GET', /^\/api\/executor\/run\/latest$/, () => ({ status: 200, file: 'executor-run.ok.json' })],
   ['GET', /^\/api\/executor\/run\/[^/]+$/, (_url, _body, url) => {
     if (url.endsWith('404')) return { status: 404, file: 'executor-run.get.404.json' };
     // Ciclo simulado para desarrollar el polling sin backend: el POST ya
@@ -153,6 +157,17 @@ let mockCache = null;
 // Base para resolver /mock/*: en navegador es el origin actual; en Node
 // (smoke tests) se puede inyectar globalThis.MOCK_BASE.
 const MOCK_BASE = globalThis.MOCK_BASE ?? globalThis.location?.origin ?? 'http://127.0.0.1:4173';
+
+function realApiUrl(path) {
+  if (globalThis.SUCKLESS_API_BASE) return new URL(path, globalThis.SUCKLESS_API_BASE).href;
+  if (!globalThis.location) return path;
+  const base = new URL(globalThis.location.href);
+  base.port = base.port === '8083' ? '4173' : base.port;
+  base.pathname = '/';
+  base.search = '';
+  base.hash = '';
+  return new URL(path, base).href;
+}
 
 function loadMock(file) {
   if (!mockCache) mockCache = new Map();
@@ -250,20 +265,26 @@ export async function api(path, { method = 'GET', body, timeoutMs = DEFAULT_TIME
   }
 
   return withTimeout(async (signal) => {
-    if (USE_MOCK) {
-      const out = await mockFetch(method, path, body, signal);
-      if (out.status >= 400) {
-        const errBody = out.body ?? await loadMock(out.file);
-        throw new ApiError(errBody.error?.code ?? mapHttpStatusToCode(out.status), errBody.error?.message ?? `Error HTTP ${out.status}.`, out.status, errBody);
+    try {
+      if (USE_MOCK) {
+        const out = await mockFetch(method, path, body, signal);
+        if (out.status >= 400) {
+          const errBody = out.body ?? await loadMock(out.file);
+          throw new ApiError(errBody.error?.code ?? mapHttpStatusToCode(out.status), errBody.error?.message ?? `Error HTTP ${out.status}.`, out.status, errBody);
+        }
+        if (out.raw) {
+          // Export: es texto/Markdown, no JSON. Devolvemos el contenido crudo.
+          return { status: out.status, text: await loadMock(out.file), raw: true };
+        }
+        const text = await loadMock(out.file);
+        return { status: out.status, data: JSON.parse(text) };
       }
-      if (out.raw) {
-        //Export: es texto/Markdown, no JSON. Devolvemos el contenido crudo.
-        return { status: out.status, text: await loadMock(out.file), raw: true };
-      }
-      const text = await loadMock(out.file);
-      return { status: out.status, data: JSON.parse(text) };
+      return await realFetch(method, realApiUrl(path), body, signal);
+    } catch (error) {
+      if (signal.aborted) throw error;
+      if (error instanceof ApiError) throw error;
+      throw new ApiError('UPSTREAM_5XX', error?.message ?? 'No se pudo contactar al servidor.', null);
     }
-    return realFetch(method, path, body, signal);
   }, timeoutMs);
 }
 

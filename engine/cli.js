@@ -10,7 +10,7 @@ import { renderReport } from './report.js';
 const USAGE = `SuckLess — entiende, revisa, corrige, comprueba.
 
   req start "<texto>"                 Abre un requisito y muestra las preguntas pendientes
-  req answer <id> [--set k=v]... [--actor ..] [--behavior ..] [--input ..]... [--error ..]... [--criterion ..]... [--file respuestas.json]
+  req answer <id> [--set k=v]... [--actor ..] [--behavior ..] [--input ..]... [--error ..]... [--criterion ..]... [--edge-case ..]... [--file respuestas.json]
   req show <id> | req list
   req approve <id> --by "Nombre"      Solo una persona aprueba
   gen <id>                            Genera pruebas desde un requisito aprobado
@@ -25,7 +25,7 @@ const USAGE = `SuckLess — entiende, revisa, corrige, comprueba.
 const { values: v, positionals: p } = parseArgs({
   allowPositionals: true,
   strict: false,
-  options: { by: { type: 'string' }, req: { type: 'string' }, target: { type: 'string' }, log: { type: 'string' }, q: { type: 'string' }, type: { type: 'string' }, out: { type: 'string' }, file: { type: 'string' }, actor: { type: 'string' }, behavior: { type: 'string' }, set: { type: 'string', multiple: true }, input: { type: 'string', multiple: true }, error: { type: 'string', multiple: true }, criterion: { type: 'string', multiple: true }, 'no-reproduce': { type: 'boolean' } },
+  options: { by: { type: 'string' }, req: { type: 'string' }, target: { type: 'string' }, log: { type: 'string' }, q: { type: 'string' }, type: { type: 'string' }, out: { type: 'string' }, file: { type: 'string' }, actor: { type: 'string' }, behavior: { type: 'string' }, set: { type: 'string', multiple: true }, input: { type: 'string', multiple: true }, error: { type: 'string', multiple: true }, criterion: { type: 'string', multiple: true }, 'edge-case': { type: 'string', multiple: true }, 'no-reproduce': { type: 'boolean' } },
 });
 
 const show = (r) => {
@@ -57,6 +57,7 @@ async function main() {
         if (v.input) patch.inputs = v.input;
         if (v.error) patch.errors = v.error;
         if (v.criterion) patch.acceptance = v.criterion;
+        if (v['edge-case']) patch.edgeCases = v['edge-case'];
         for (const kv of v.set ?? []) {
           const [k, val] = kv.split('=');
           patch.decisions = { ...patch.decisions, [k]: val };

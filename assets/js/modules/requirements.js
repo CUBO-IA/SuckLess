@@ -234,7 +234,7 @@ async function saveAnswers() {
     }
     // El POST con answers devuelve el requisito REEVALUADO (contrato §2.1):
     // el backend decide el nuevo status (mock: todas respondidas → READY_FOR_REVIEW).
-    const { data } = await api('/api/requirements/analyze', { method: 'POST', body: { text: currentRequirement.document?.objective ?? '', answers } });
+    const { data } = await api('/api/requirements/analyze', { method: 'POST', body: { id: currentRequirement.id, text: currentRequirement.document?.objective ?? '', answers } });
     currentRequirement = data;
     questionsDirty = false;
     const idLabel = el('#req-id');

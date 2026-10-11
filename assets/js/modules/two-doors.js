@@ -98,7 +98,7 @@ async function busy(button, statusEl, fn) {
 
 async function populateRequirementSelects() {
   try {
-    const { data } = await api('/api/history?type=requirements');
+    const { data } = await api('/api/requirements');
     const optionsList = Array.isArray(data) ? data : [];
     const approvedOptions = optionsList.map((r) => ({ id: r.id, label: `${r.id.slice(0, 12)}… · ${r.status}`, approved: r.status === 'APPROVED' }));
     for (const sel of [el('#debug-reqid'), el('#verify-reqid')]) {

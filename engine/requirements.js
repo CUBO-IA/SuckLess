@@ -13,6 +13,7 @@ const FIELDS = [
   { id: 'inputs', kind: 'list', text: '¿Qué datos de entrada recibe?' },
   { id: 'errors', kind: 'list', text: '¿Qué errores o casos límite pueden ocurrir y cómo se responde?' },
   { id: 'acceptance', kind: 'list', text: '¿Qué criterios de aceptación (en lenguaje natural) confirmarían que está bien?' },
+  { id: 'edgeCases', kind: 'list', text: '¿Qué casos límite deben contemplarse?' },
 ];
 
 // Decisiones de negocio que, si faltan, impiden avanzar (dominio: descuentos/cupones).
@@ -54,25 +55,62 @@ export function derivedRules(draft) {
   return r;
 }
 
-/** Preguntas pendientes. Sin preguntas => el documento está completo. */
-export function computeMissing(draft) {
+/** Todas las preguntas aplicables, con el valor persistido cuando ya se respondió. */
+export function requirementQuestions(draft) {
   const q = [];
   for (const f of FIELDS) {
     const v = draft[f.id];
-    if (f.kind === 'list' ? !v?.length : !v) q.push({ id: f.id, field: f.id, text: f.text, type: f.kind });
+    q.push({
+      id: f.id,
+      field: f.id,
+      text: f.text,
+      type: f.kind,
+      answered: f.kind === 'list' ? Boolean(v?.length) : Boolean(v),
+      answer: f.kind === 'list' ? (v?.join('\n') ?? '') : (v || ''),
+    });
   }
   if (draft.domain) {
     for (const dec of DOMAINS[draft.domain].decisions) {
-      if (!draft.decisions[dec.id]) q.push({ id: dec.id, field: `decisions.${dec.id}`, text: dec.text, type: 'choice', options: dec.options });
+      const answer = draft.decisions[dec.id] ?? '';
+      q.push({
+        id: dec.id,
+        field: `decisions.${dec.id}`,
+        text: dec.text,
+        type: 'choice',
+        options: dec.options,
+        answered: Boolean(answer),
+        answer,
+      });
     }
   } else if (!draft.rules.length) {
-    q.push({ id: 'rules', field: 'rules', text: '¿Qué reglas de negocio aplican?', type: 'list' });
+    q.push({
+      id: 'rules',
+      field: 'rules',
+      text: '¿Qué reglas de negocio aplican?',
+      type: 'list',
+      answered: false,
+      answer: '',
+    });
+  } else {
+    q.push({
+      id: 'rules',
+      field: 'rules',
+      text: '¿Qué reglas de negocio aplican?',
+      type: 'list',
+      answered: true,
+      answer: draft.rules.join('\n'),
+    });
   }
   return q;
 }
 
+/** Preguntas pendientes. Sin preguntas => el documento está completo. */
+export function computeMissing(draft) {
+  return requirementQuestions(draft).filter((q) => !q.answered);
+}
+
 export function contentHash(d) {
-  const core = { objective: d.objective, actor: d.actor, expectedBehavior: d.expectedBehavior, inputs: d.inputs, errors: d.errors, acceptance: d.acceptance, rules: d.rules, decisions: d.decisions };
+  const core = { objective: d.objective, actor: d.actor, expectedBehavior: d.expectedBehavior, inputs: d.inputs, errors: d.errors, acceptance: d.acceptance, edgeCases: d.edgeCases, rules: d.rules, decisions: d.decisions };
   return crypto.createHash('sha256').update(JSON.stringify(core)).digest('hex');
 }
 
@@ -93,13 +131,14 @@ function refresh(d, event) {
 
 export function startRequirement(text) {
   const objective = String(text ?? '').trim();
-  if (objective.length < 5) throw new Error('Describe el requisito con al menos unas palabras.');
+  if (!objective) throw new Error('Describe el requisito con al menos un carácter.');
   const draft = {
     id: `REQ-${crypto.randomBytes(3).toString('hex')}`,
     createdAt: nowIso(),
     objective,
     domain: detectDomain(objective),
     actor: '', expectedBehavior: '', inputs: [], rules: [], errors: [], acceptance: [],
+    edgeCases: [],
     decisions: {},
     approval: null,
     history: [],

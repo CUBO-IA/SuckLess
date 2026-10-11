@@ -7,7 +7,7 @@
   Variables esperadas por el consumidor:
     pageTitle  (string) — título de la página
     activeNav  (string) — clave de nav activa: dashboard|requirements|two-doors|executor|code|history
-    useMock    (boolean) — true => banner MODO DEMO visible (Etapa 0: siempre true)
+    useMock    (boolean) — true => banner MODO DEMO visible y API mock activa; false => backend real
 -->
 <!-- El banner MODO DEMO vive en ../partials/demo-banner.bxm; la visibilidad la
      decide el atributo data-suckless-demo en <html> + tokens.css. -->

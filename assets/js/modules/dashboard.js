@@ -68,6 +68,14 @@ function renderCardError(container, title, retry) {
   setChildren(container, [box]);
 }
 
+function renderCardNotice(container, message) {
+  clearSkeleton(container);
+  const notice = tag('div', 'kpi summary--empty');
+  notice.setAttribute('role', 'status');
+  notice.textContent = message;
+  setChildren(container, [notice]);
+}
+
 // ---------------------------------------------------------------------------
 // KPI derivados de la fuente: requisitos aprobados, checks OK, checks FALLA y
 // hallazgos abiertos por severidad. Con mock se calculan una vez por carga.
@@ -81,8 +89,8 @@ async function refreshKpis() {
   if (!wrapKpi && !okKpi && !failKpi && !findingsKpi) return; // no estamos en dashboard
 
   const [requirements, run, review] = await Promise.allSettled([
-    api('/api/history?type=requirements'),
-    api('/api/executor/run/run_01J8Z3F2B3C4D5E6F7G8H9I0J1'), // mock fijo; con backend real: última corrida
+    api('/api/requirements'),
+    api('/api/executor/run/latest'),
     api('/api/code/review', { method: 'POST', body: { files: ['demo-store/src/cart.js'] } }),
   ]);
 
@@ -103,6 +111,9 @@ async function refreshKpis() {
     const { pass, fail } = run.value.data.summary;
     if (okBox) renderKpi(okBox, { value: pass, label: 'Checks OK', variant: 'ok' });
     if (failBox) renderKpi(failBox, { value: fail, label: 'Checks FALLA', variant: 'fail' });
+  } else if (run.reason instanceof ApiError && run.reason.code === 'NOT_FOUND') {
+    if (okBox) renderCardNotice(okBox, 'Sin corridas todavía.');
+    if (failBox) renderCardNotice(failBox, 'Sin corridas todavía.');
   } else {
     if (okBox) renderCardError(okBox, 'El ejecutor no respondió', refreshKpis);
     if (failBox) renderCardError(failBox, 'El ejecutor no respondió', refreshKpis);
@@ -125,15 +136,16 @@ async function refreshKpis() {
 
 function renderRequirementSummary(container, data) {
   clearSkeleton(container);
-  if (!data || isEmptyList(data)) {
+  const requirement = Array.isArray(data) ? data[0] : data;
+  if (!requirement || isEmptyList(data)) {
     setChildren(container, [tag('p', 'summary__label', 'Último requisito'), tag('p', 'card__meta', 'Aún no hay requisitos. Empieza en Requirements Gate.')]);
     return;
   }
   const box = tag('div');
   box.append(tag('p', 'summary__label', 'Último requisito'));
   const meta = tag('div', 'summary__meta');
-  meta.append(tag('span', 'badge badge--' + (data.status === 'APPROVED' ? 'ok' : data.status === 'READY_FOR_REVIEW' ? 'info' : 'warn'), data.status));
-  box.append(meta, tag('p', 'card__meta', data.document?.objective ?? 'Sin objetivo todavía.'));
+  meta.append(tag('span', 'badge badge--' + (requirement.status === 'APPROVED' ? 'ok' : requirement.status === 'READY_FOR_REVIEW' ? 'info' : 'warn'), requirement.status));
+  box.append(meta, tag('p', 'card__meta', requirement.document?.objective ?? requirement.objective ?? requirement.title ?? 'Sin objetivo todavía.'));
   setChildren(container, [box]);
 }
 
@@ -189,7 +201,7 @@ async function refreshSummaries() {
 
   const [req, run, hist] = await Promise.allSettled([
     api('/api/requirements/analyze', { method: 'POST', body: { text: 'El carrito debe aplicar descuentos' } }),
-    api('/api/executor/run/run_01J8Z3F2B3C4D5E6F7G8H9I0J1'),
+    api('/api/executor/run/latest'),
     api('/api/history'),
   ]);
 
@@ -199,6 +211,7 @@ async function refreshSummaries() {
   }
   if (runBox) {
     if (run.status === 'fulfilled') renderRunSummary(runBox, run.value.data);
+    else if (run.reason instanceof ApiError && run.reason.code === 'NOT_FOUND') renderRunSummary(runBox, null);
     else renderCardError(runBox, 'La ejecución no respondió', refreshSummaries);
   }
   if (histBox) {
