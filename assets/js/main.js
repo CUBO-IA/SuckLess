@@ -8,6 +8,7 @@ import { initReveal } from './ui/reveal.js';
 import { boot } from './modules/dashboard.js';
 import { bootTwoDoors } from './modules/two-doors.js';
 import { bootRequirements } from './modules/requirements.js';
+import { bootExecutor } from './modules/executor.js';
 
 document.documentElement.classList.remove('no-js');
 
@@ -16,6 +17,7 @@ initParticles();
 boot();
 bootTwoDoors();
 bootRequirements();
+bootExecutor();
 
 // Toggle de navegación móvil (accesible con aria-expanded)
 const toggle = document.getElementById('nav-toggle');

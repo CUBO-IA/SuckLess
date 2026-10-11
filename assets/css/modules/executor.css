@@ -1,0 +1,93 @@
+/* SuckLess · modules/executor.css — Test & Evidence Executor (Etapa 5) */
+
+.executor { display: flex; flex-direction: column; gap: 20px; }
+.exec-form { display: grid; gap: 14px; grid-template-columns: 1fr 1fr auto; margin-bottom: 16px; }
+.exec-form .exec-actions { display: flex; align-items: flex-end; gap: 10px; }
+@media (max-width: 640px) { .exec-form { grid-template-columns: 1fr; } .exec-actions { flex-direction: column; align-items: stretch; } }
+
+/* Resumen de corrida (estado global, contadores, duración) */
+.exec-summary {
+  margin-top: 14px; padding: 14px 16px;
+  background: var(--bg-elevated); border: 1px solid var(--border); border-radius: var(--radius-sm);
+  display: flex; flex-direction: column; gap: 10px;
+}
+.exec-summary__row { display: flex; align-items: center; gap: 10px; }
+.exec-summary__row .badge--running .badge__icon { animation: suckless-spin 1s linear infinite; }
+.exec-counters { display: flex; gap: 18px; flex-wrap: wrap; font-family: var(--font-mono); font-size: 0.85rem; }
+.exec-counter { display: inline-flex; align-items: center; gap: 6px; color: var(--text-secondary); }
+.exec-counter b { font-size: 1.05rem; }
+.exec-counter--ok .exec-counter__icon { color: var(--ok); }
+.exec-counter--fail .exec-counter__icon { color: var(--fail); }
+.exec-counter--err .exec-counter__icon { color: var(--warn); }
+
+/* Lista de checks */
+.exec-checks__head { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; margin-bottom: 10px; }
+.exec-checks { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
+.exec-check {
+  display: flex; align-items: center; gap: 12px;
+  padding: 12px 10px; border-bottom: 1px solid var(--border);
+  font-size: 0.9rem;
+}
+.exec-check:last-child { border-bottom: none; }
+.exec-check--fail-filtered { display: none; }
+.exec-checks.only-fails .exec-check:not(.exec-check--fail):not(.exec-check--error) { display: none; }
+.exec-check__icon { font-size: 1.05rem; flex-shrink: 0; width: 1.4em; text-align: center; }
+.exec-check--pass .exec-check__icon { color: var(--ok); }
+.exec-check--fail .exec-check__icon { color: var(--fail); }
+.exec-check--error .exec-check__icon { color: var(--fail); }
+.exec-check--running .exec-check__icon { color: var(--cyan); animation: suckless-spin 1s linear infinite; }
+.exec-check--queued .exec-check__icon { color: var(--idle); }
+.exec-check__name { flex: 1; font-family: var(--font-mono); }
+.exec-check__dur { font-family: var(--font-mono); font-size: 0.78rem; color: var(--text-secondary); }
+.exec-check__error {
+  flex-basis: 100%; margin: 4px 0 0;
+  color: var(--fail); font-size: 0.82rem; font-family: var(--font-mono);
+  padding: 6px 10px; background: var(--fail-bg); border-radius: 6px;
+  display: flex; gap: 6px; align-items: flex-start;
+}
+.exec-check__error::before { content: '⚠'; }
+/* Botón "ver detalle" de la fila */
+.exec-check__detail { border: 0; background: transparent; color: var(--cyan-bright); cursor: pointer; min-height: 32px; padding: 0 8px; text-decoration: underline; font-family: inherit; }
+
+/* Trazas: línea de tiempo en ZONA LIMPIA (fondo sólido, sin efectos) */
+.exec-trace__head { display: flex; align-items: center; gap: 12px; justify-content: space-between; flex-wrap: wrap; margin-bottom: 10px; }
+.exec-trace {
+  background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-sm);
+  padding: 14px 16px; margin: 0; list-style: none;
+  font-family: var(--font-mono); font-size: 0.82rem; line-height: 1.6;
+  box-shadow: none !important; text-shadow: none !important;
+}
+.exec-trace li { display: flex; gap: 10px; padding: 6px 0; border-bottom: 1px dashed var(--border); flex-wrap: wrap; }
+.exec-trace li:last-child { border-bottom: none; }
+.exec-trace__step { color: var(--text-secondary); flex-shrink: 0; }
+.exec-trace__action { color: var(--cyan-bright); }
+.exec-trace__selector { color: var(--text-primary); word-break: break-all; }
+.exec-trace__dur { color: var(--text-muted); margin-left: auto; }
+/* El paso fallido destacado con símbolo visible + color */
+.exec-trace__failed { background: var(--fail-bg); border-left: 3px solid var(--fail); padding-left: 10px; }
+.exec-trace__failed::before { content: '✗'; color: var(--fail); font-weight: 700; }
+.exec-trace__failed .exec-trace__selector { color: var(--fail); }
+.exec-trace li[role="img"] { color: var(--text-secondary); border-bottom: none; }
+
+/* Galería */
+.exec-gallery__grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; margin-top: 10px; }
+.exec-gallery__thumb {
+  border: 1px solid var(--border); border-radius: var(--radius-sm); overflow: hidden;
+  background: var(--bg-card); cursor: zoom-in; padding: 0;
+  display: flex; flex-direction: column;
+}
+.exec-gallery__thumb:focus-visible { border-color: var(--cyan-bright); outline: 2px solid var(--cyan-bright); }
+.exec-gallery__thumb img { width: 100%; aspect-ratio: 16/10; object-fit: cover; }
+.exec-gallery__thumb .exec-gallery__label { font-family: var(--font-mono); font-size: 0.68rem; color: var(--text-secondary); padding: 6px 8px; text-align: center; }
+
+/* Lightbox: diálogo a pantalla completa accesible */
+dialog.exec-lightbox { background: transparent; border: 0; padding: 0; max-width: 100vw; }
+dialog.exec-lightbox::backdrop { background: rgba(3, 7, 18, 0.92); }
+.exec-lightbox__body { display: flex; flex-direction: column; gap: 8px; max-height: 92vh; }
+.exec-lightbox img { max-height: 80vh; object-fit: contain; border: 1px solid var(--border-strong); border-radius: var(--radius-sm); }
+.exec-lightbar { display: flex; gap: 10px; justify-content: center; color: var(--text-secondary); font-family: var(--font-mono); font-size: 0.82rem; align-items: center; flex-wrap: wrap; }
+
+/* Panel de IA */
+.exec-ai { border: 1px solid color-mix(in srgb, var(--magenta) 35%, transparent); }
+.exec-ai .card__title { display: flex; align-items: center; gap: 10px; }
+.exec-ai__empty { color: var(--text-secondary); }
