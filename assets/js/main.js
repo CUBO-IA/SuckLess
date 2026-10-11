@@ -9,6 +9,7 @@ import { boot } from './modules/dashboard.js';
 import { bootTwoDoors } from './modules/two-doors.js';
 import { bootRequirements } from './modules/requirements.js';
 import { bootExecutor } from './modules/executor.js';
+import { bootCode } from './modules/code.js';
 
 document.documentElement.classList.remove('no-js');
 
@@ -18,6 +19,7 @@ boot();
 bootTwoDoors();
 bootRequirements();
 bootExecutor();
+bootCode();
 
 // Toggle de navegación móvil (accesible con aria-expanded)
 const toggle = document.getElementById('nav-toggle');

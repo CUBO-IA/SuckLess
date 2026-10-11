@@ -1,0 +1,13 @@
+<!--
+  SuckLess · views/code-index.bxm — página Code & Review (Etapa 6).
+  Patrón de wrapper idéntico al resto.
+-->
+<bx:set pageTitle = "Código" />
+<bx:set activeNav = "code" />
+<bx:set useMock = true />
+
+<bx:savecontent variable="pageContent">
+  <bx:include template="code.bxm" />
+</bx:savecontent>
+
+<bx:include template="layouts/base.bxm" />

@@ -1,0 +1,92 @@
+<!--
+  SuckLess · views/code.bxm — Code Explainer & Review (Etapa 6, P0).
+  Layout de dos paneles §Etapa 6:
+   - Izquierda: Code Viewer (árbol de archivos, resaltado de sintaxis LOCAL,
+     números de línea, resaltado de rangos citados, búsqueda, copiar.
+     Zona limpia §3.6: fondo sólido, sin glow ni animaciones).
+   - Derecha: tabs "Explicar" y "Revisar".
+  El CÓDIGO SIEMPRE se inserta como texto (textContent), nunca como HTML.
+  Un hallazgo sin file/lines se muestra igual sin romper el visor.
+-->
+<bx:output>
+<div class="code-module">
+  <!-- PANEL IZQUIERDO: Code Viewer -->
+  <section class="card card--lg code-module__viewer" id="code-viewer-zone" aria-labelledby="code-viewer-title">
+    <div class="exec-trace__head">
+      <h2 id="code-viewer-title" class="card__title">Código de la demo</h2>
+      <div class="code-search">
+        <label class="visually-hidden" for="code-src">Archivo</label>
+        <select class="select" id="code-src" aria-label="Archivo a mostrar"></select>
+        <label class="visually-hidden" for="code-search">Buscar en el archivo</label>
+        <input class="input" type="search" id="code-search" placeholder="Buscar en el archivo…" />
+        <button class="btn btn--ghost btn--sm" id="code-copy" type="button">Copiar archivo</button>
+      </div>
+    </div>
+    <div class="code-view" id="code-view" tabindex="0" role="region" aria-label="Código fuente con resaltado y números de línea"></div>
+    <p class="minor mono-label" id="code-search-status" role="status" aria-live="polite"></p>
+  </section>
+
+  <!-- PANEL DERECHO: Explicar / Revisar -->
+  <div class="code-module__results">
+    <div class="tabs" role="tablist" aria-label="Acciones de código">
+      <button class="tab" id="tab-explain" role="tab" aria-selected="true" aria-controls="panel-explain" type="button" tabindex="0">Explicar</button>
+      <button class="tab" id="tab-review" role="tab" aria-selected="false" aria-controls="panel-review" type="button" tabindex="-1">Revisar</button>
+    </div>
+
+    <!-- TAB EXPLICAR -->
+    <section class="tabpanel card card--lg" id="panel-explain" role="tabpanel" aria-labelledby="tab-explain">
+      <div class="field">
+        <label for="explain-symbol">¿Qué quieres entender?</label>
+        <input class="input" type="text" id="explain-symbol" list="explain-symbols" placeholder="p. ej. addItem" aria-describedby="explain-hint" />
+        <datalist id="explain-symbols">
+          <option value="createCart" />
+          <option value="addItem" />
+          <option value="subtotal" />
+          <option value="applyCoupon" />
+          <option value="discount" />
+          <option value="total" />
+        </datalist>
+        <p class="hint" id="explain-hint">Muestra el flujo en pasos con referencias archivo:línea clicables.</p>
+      </div>
+      <div class="req-actions">
+        <button class="btn btn--primary" id="explain-run" type="button">Explicar</button>
+        <span class="minor mono-label" id="explain-status" role="status" aria-live="polite"></span>
+      </div>
+      <ol class="explain-steps" id="explain-steps" aria-live="polite" hidden></ol>
+    </section>
+
+    <!-- TAB REVISAR -->
+    <section class="tabpanel card card--lg" id="panel-review" role="tabpanel" aria-labelledby="tab-review" hidden>
+      <!-- Filtros -->
+      <div class="review-filters">
+        <fieldset class="review-filters__group">
+          <legend class="mono-label">Severidad</legend>
+          <label class="check"><input type="checkbox" data-sev="ALTA" checked /> ALTA</label>
+          <label class="check"><input type="checkbox" data-sev="MEDIA" checked /> MEDIA</label>
+          <label class="check"><input type="checkbox" data-sev="BAJA" checked /> BAJA</label>
+        </fieldset>
+        <fieldset class="review-filters__group">
+          <legend class="mono-label">Categoría</legend>
+          <label class="check"><input type="checkbox" data-cat="LOGICA" checked /> Lógica</label>
+          <label class="check"><input type="checkbox" data-cat="SEGURIDAD" checked /> Seguridad</label>
+          <label class="check"><input type="checkbox" data-cat="CALIDAD" checked /> Calidad</label>
+        </fieldset>
+      </div>
+      <!-- Resumen en estilo KPI (contadores por severidad y categoría) -->
+      <div class="kpi-grid" id="review-summary"></div>
+      <!-- Hallazgos: acordeón accesible <details> ordenado por severidad -->
+      <div class="review-findings" id="review-findings" aria-label="Hallazgos">
+        <div class="skeleton skeleton--card"></div>
+      </div>
+      <div class="req-actions">
+        <button class="btn btn--primary" id="review-run" type="button">Revisar</button>
+        <button class="btn btn--secondary" id="review-save" type="button" hidden>Guardar en historial</button>
+        <span class="minor mono-label" id="review-status" role="status" aria-live="polite"></span>
+      </div>
+    </section>
+  </div>
+</div>
+
+<!-- Range resaltado en el visor: la línea citada por hallazgos/hipótesis se
+     marca con .line-cited (ver code-view.css) cuando se abre un hallazgo. -->
+</bx:output>
