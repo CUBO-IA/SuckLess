@@ -1,0 +1,18 @@
+{
+  "id": "run_01J8Z3F2B3C4D5E6F7G8H9I0J1",
+  "status": "FAIL",
+  "target": "both",
+  "checks": [
+    { "name": "BASE-FRESH-LOAD", "status": "FAIL", "durationMs": 142 },
+    { "name": "DISCOUNT-10", "status": "PASS", "durationMs": 52 },
+    { "name": "DISCOUNT-15", "status": "PASS", "durationMs": 48 },
+    { "name": "COUPON-EXCLUSIVE", "status": "FAIL", "durationMs": 61 },
+    { "name": "COUPON-STALE-PRICE", "status": "FAIL", "durationMs": 55 },
+    { "name": "CART-NEGATIVE-QTY", "status": "FAIL", "durationMs": 44 },
+    { "name": "PRICE-BAD-INPUT", "status": "ERROR", "durationMs": 12 },
+    { "name": "TOTAL-CORE", "status": "PASS", "durationMs": 71 }
+  ],
+  "summary": { "pass": 3, "fail": 4, "error": 1 },
+  "trace": "TypeError: Cannot read properties of undefined (reading 'find')\n    at addItem (demo-store/src/cart.js:27)\n    at Layer.handle (demo-store/src/server.js:80)\n",
+  "screenshots": []
+}

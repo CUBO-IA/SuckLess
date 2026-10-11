@@ -1,0 +1,6 @@
+{
+  "error": {
+    "code": "VALIDATION",
+    "message": "El log es obligatorio (1 a 50 000 caracteres)."
+  }
+}

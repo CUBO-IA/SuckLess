@@ -1,0 +1,12 @@
+{
+  "id": "run_01J8Z3F2B3C4D5E6F7G8H9I0J1",
+  "status": "FAIL",
+  "target": "both",
+  "checks": [
+    { "name": "BASE-FRESH-LOAD", "status": "FAIL", "durationMs": 142 },
+    { "name": "COUPON-EXCLUSIVE", "status": "FAIL", "durationMs": 61 }
+  ],
+  "summary": { "pass": 0, "fail": 2, "error": 0 },
+  "trace": "TypeError: Cannot read properties of undefined (reading 'find')\n    at addItem (demo-store/src/cart.js:27)\n",
+  "screenshots": []
+}

@@ -1,0 +1,6 @@
+{
+  "error": {
+    "code": "NOT_FOUND",
+    "message": "El requisito con ese id no existe o ya fue aprobado."
+  }
+}

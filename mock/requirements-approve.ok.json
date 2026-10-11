@@ -1,0 +1,17 @@
+{
+  "id": "req_01J8Z3F0Y9Q2GBD9X3V5Q8N7B2",
+  "status": "APPROVED",
+  "approvedAt": "2026-10-10T14:05:12Z",
+  "approvedBy": "Beatriz Fuentes",
+  "document": {
+    "title": "Descuentos en el carrito",
+    "objective": "El carrito aplica descuentos por porcentaje o cupón según las reglas acordadas al responder la entrevista.",
+    "rules": [
+      "Los descuentos no se aplican a productos con precio ya rebajado.",
+      "Un cupón no puede combinarse con otro cupón."
+    ],
+    "acceptanceCriteria": [
+      "Dado un carrito con 2 productos de 100 y un cupón -10%, el total debe ser 180."
+    ]
+  }
+}

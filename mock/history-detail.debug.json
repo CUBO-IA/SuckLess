@@ -1,0 +1,25 @@
+{
+  "id": "hist_01J8Z3F5E6F7G8H9I0J1K2L3M5",
+  "type": "debug",
+  "title": "TypeError léyendo find · addItem",
+  "status": "HYPOTHESIS",
+  "createdAt": "2026-10-10T13:48:00Z",
+  "analysis": {
+    "id": "dbg_01J8Z3F1A2B3C4D5E6F7G8H9I0",
+    "status": "HYPOTHESIS",
+    "ladderLevel": 1,
+    "logSummary": "TypeError: leer .find de undefined",
+    "hypotheses": [
+      {
+        "id": "hyp_01J8Z3F1A2B3C4D5E6F7G8H9I0",
+        "text": "addItem escribe el carrito en this.items, pero lo lee this.cart",
+        "status": "hypothesis",
+        "evidence": [
+          { "file": "demo-store/src/cart.js", "lines": [27, 31], "snippet": "this.cart.find(...)" }
+        ],
+        "reproduceWith": "POST /api/executor/run con check: BASE-FRESH-LOAD"
+      }
+    ]
+  },
+  "report": "# Diagnóstico: TypeError léyendo find · addItem\n\n**Nivel de evidencia:** Hipótesis (1/3 del ladder)\n\n## Hipótesis 1\n- **Texto:** addItem escribe el carrito en this.items, pero lo lee de this.cart.\n- **Evidencia:** demo-store/src/cart.js líneas 27–31 → `this.cart.find(...)`.\n- **Verificación:** ejecutar BASE-FRESH-LOAD en el ejecutor.\n"
+}

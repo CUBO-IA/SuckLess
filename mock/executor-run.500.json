@@ -1,0 +1,6 @@
+{
+  "error": {
+    "code": "TIMEOUT",
+    "message": "El ejecutor superó el límite de tiempo. La corrida puede seguir en el servidor."
+  }
+}

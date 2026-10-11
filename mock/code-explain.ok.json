@@ -1,0 +1,14 @@
+{
+  "id": "exp_01J8Z3F3C4D5E6F7G8H9I0J1K2",
+  "status": "OK",
+  "symbol": "addItem",
+  "file": "demo-store/src/cart.js",
+  "lines": [21, 45],
+  "summary": "Agrega un producto al carrito y recalcula totales.",
+  "flow": [
+    "read product por id",
+    "read items del carrito",
+    "write items con producto + cantidad",
+    "write totals recalculados"
+  ]
+}

@@ -1,0 +1,6 @@
+{
+  "error": {
+    "code": "NOT_FOUND",
+    "message": "El símbolo no existe en el código fuente indexado."
+  }
+}

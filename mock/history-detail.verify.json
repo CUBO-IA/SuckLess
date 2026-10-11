@@ -1,0 +1,22 @@
+{
+  "id": "hist_01J8Z3F5E6F7G8H9I0J1K2L3M4",
+  "type": "verify",
+  "title": "Cupón -10% · versión buggy",
+  "status": "FAIL",
+  "createdAt": "2026-10-10T14:03:00Z",
+  "run": {
+    "id": "run_01J8Z3F2B3C4D5E6F7G8H9I0J1",
+    "status": "FAIL",
+    "target": "buggy",
+    "checks": [
+      { "name": "BASE-FRESH-LOAD", "status": "FAIL", "durationMs": 142 },
+      { "name": "DISCOUNT-10", "status": "PASS", "durationMs": 52 },
+      { "name": "COUPON-EXCLUSIVE", "status": "FAIL", "durationMs": 61 },
+      { "name": "PRICE-BAD-INPUT", "status": "ERROR", "durationMs": 12 }
+    ],
+    "summary": { "pass": 1, "fail": 2, "error": 1 },
+    "trace": "TypeError: Cannot read properties of undefined (reading 'find')\n    at addItem (demo-store/src/cart.js:27)\n",
+    "screenshots": []
+  },
+  "report": "# Verificación: Cupón -10% · versión buggy\n\n**Resultado:** FAIL (1 PASS · 2 FAIL · 1 ERROR)\n\n| Check | Estado | Duración |\n|---|---|---|\n| BASE-FRESH-LOAD | FAIL | 142 ms |\n| DISCOUNT-10 | PASS | 52 ms |\n| COUPON-EXCLUSIVE | FAIL | 61 ms |\n| PRICE-BAD-INPUT | ERROR | 12 ms |\n\n> PASS/FAIL procede del ejecutor de checks, no de un modelo de lenguaje.\n"
+}
