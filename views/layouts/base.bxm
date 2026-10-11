@@ -37,12 +37,13 @@
     <link rel="stylesheet" href="/assets/css/components/stepper.css">
     <link rel="stylesheet" href="/assets/css/components/code-view.css">
     <link rel="stylesheet" href="/assets/css/components/demo-banner.css">
+    <link rel="stylesheet" href="/assets/css/modules/dashboard.css">
     <!-- El JS detecta no-js y lo quita: progressive enhancement vía clase. -->
     <script>document.documentElement.classList.remove('no-js');</script>
     <script type="module" src="/assets/js/main.js"></script>
 </head>
 <body>
-    <a class="skip-link" href="#main-content">Saltar al contenido principal</a>
+    <a class="skip-link" href="##main-content">Saltar al contenido principal</a>
     <canvas id="suckless-particles" aria-hidden="true"
             style="position:fixed;inset:0;z-index:-1;pointer-events:none;"></canvas>
 
@@ -50,7 +51,10 @@
     <bx:include template="../partials/demo-banner.bxm" />
 
     <main id="main-content" class="container" tabindex="-1">
-        <!-- Slot de contenido de cada vista (incluido por el consumidor). -->
+        <!-- Slot de contenido de cada vista: si el consumidor definió
+             pageContent vía bx:savecontent, se imprime aquí; si no, el
+             consumidor self-contiene su contenido (como ui-kit.bxm). -->
+        #( pageContent ?: '' )#
     </main>
 
     <footer class="container" style="padding-block:24px 48px;">

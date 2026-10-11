@@ -5,11 +5,13 @@
  */
 import { initParticles } from './ui/particles.js';
 import { initReveal } from './ui/reveal.js';
+import { boot } from './modules/dashboard.js';
 
 document.documentElement.classList.remove('no-js');
 
 initReveal();
 initParticles();
+boot();
 
 // Toggle de navegación móvil (accesible con aria-expanded)
 const toggle = document.getElementById('nav-toggle');

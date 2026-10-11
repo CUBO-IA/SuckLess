@@ -1,0 +1,133 @@
+<!--
+  SuckLess · views/dashboard.bxm — Panel Principal (Etapa 2).
+  Punto de entrada que comunica el flujo ACLARAR → DIAGNOSTICAR → PROBAR → VERIFICAR.
+  SSR entrega el panel COMPLETO sin JS (criterio de aceptación): los valores que
+  el backend no puede resolver en SSR se renderizan como "—" con data-* para que
+  el JS (assets/js/modules/dashboard.js) refresque solo esas tarjetas.
+  Nada aquí depende de JS: la página es 100% navegable sin scripts.
+-->
+
+<!-- El dashboard hereda el layout base: incluye el layout con su contenido dentro. -->
+<bx:output>
+<!-- Contenido embebido: dashboard NO usa el layout completo (el runtime includer lo inyecta) -->
+<!-- Para SSR puro, este archivo asume que es el contenido del <main> del layout base. -->
+
+<!-- 1. HERO -->
+<section class="hero reveal">
+  <p class="mono-label hero__eyebrow">ACLÁRAR · DIAGNOSTICAR · PROBAR · VERIFICAR</p>
+  <h1 class="neon">Menos frustración.<br><span class="grad-text">Más soluciones comprobadas.</span></h1>
+  <p class="hero__sub">
+    No adivinamos: lo demostramos. SuckLess convierte requisitos vagos en
+    especificaciones verificables, diagnostica errores con evidencia y ejecuta
+    pruebas reales cuyo <strong>resultado PASS/FAIL proviene del ejecutor, nunca de la IA</strong>.
+  </p>
+  <div class="hero__cta">
+    <a class="btn btn--primary" href="/views/two-doors.bxm">Abrir Two Doors</a>
+    <a class="btn btn--secondary" href="/views/requirements.bxm">Comenzar un requisito</a>
+  </div>
+</section>
+
+<!-- 2. STEPPER del flujo con el estado del trabajo en curso (SSR pinta estados conocidos) -->
+<nav aria-label="Etapas del flujo de trabajo SuckLess">
+  <ol class="stepper reveal">
+    <li class="step step--current">
+      <span class="step__badge">En curso</span>
+      <span class="step__label">ACLARAR</span>
+      <a class="step__link" href="/views/requirements.bxm">Ir a Requirements →</a>
+    </li>
+    <li class="step">
+      <span class="step__badge">Pendiente</span>
+      <span class="step__label">DIAGNOSTICAR</span>
+      <a class="step__link" href="/views/two-doors.bxm?mode=debug">Ir a Two Doors →</a>
+    </li>
+    <li class="step">
+      <span class="step__badge">Pendiente</span>
+      <span class="step__label">PROBAR</span>
+      <a class="step__link" href="/views/executor.bxm">Ir al Executor →</a>
+    </li>
+    <li class="step">
+      <span class="step__badge">Pendiente</span>
+      <span class="step__label">VERIFICAR</span>
+      <a class="step__link" href="/views/history.bxm">Ver historial →</a>
+    </li>
+  </ol>
+</nav>
+
+<!-- 3. GRID DE KPI: SSR valores "—", JS los refresca con Identity Targets -->
+<section aria-labelledby="kpis-title" class="reveal">
+  <h2 id="kpis-title" class="card__title" style="margin-top:32px;">Estado del trabajo</h2>
+  <div class="kpi-grid">
+    <!-- Cada KPI lleva data-kpi="clave" y el partial recibe id para refresco granular -->
+    <div data-kpi="requirementsApproved">
+      <div class="skeleton skeleton--kpi" data-skeleton-for="kpi-req-aprobados" aria-hidden="true"></div>
+    </div>
+    <div data-kpi="checksOk">
+      <div class="skeleton skeleton--kpi" data-skeleton-for="kpi-checks-ok" aria-hidden="true"></div>
+    </div>
+    <div data-kpi="checksFail">
+      <div class="skeleton skeleton--kpi" data-skeleton-for="kpi-checks-fail" aria-hidden="true"></div>
+    </div>
+    <div data-kpi="findingsOpen">
+      <div class="skeleton skeleton--kpi" data-skeleton-for="kpi-findings-open" aria-hidden="true"></div>
+    </div>
+  </div>
+  <p id="dashboard-error" role="status" aria-live="polite" class="visually-hidden"></p>
+</section>
+
+<!-- 4. ACCESOS RÁPIDOS a los 6 módulos -->
+<section aria-labelledby="modules-title" class="reveal">
+  <h2 id="modules-title" class="card__title" style="margin-top:32px;">Módulos</h2>
+  <div class="quick-grid">
+    <a class="card card--hover card--link" href="/views/requirements.bxm">
+      <h3 class="card__title"><span aria-hidden="true">◎</span> Requirements Gate</h3>
+      <p class="card__meta">Convierte un requisito vago en una especificación con criterios de aceptación y aprobación humana.</p>
+      <span class="provenance">Criterio: sin aprobación no hay verificación</span>
+    </a>
+    <a class="card card--hover card--link" href="/views/two-doors.bxm">
+      <h3 class="card__title"><span aria-hidden="true">⧉</span> Two Doors</h3>
+      <p class="card__meta">Elige el modo: <em>ya tengo un error</em> (log · trace) o <em>quiero probar mi app</em> (requisito · criterios).</p>
+      <span class="provenance">Entrada correcta desde el principio</span>
+    </a>
+    <a class="card card--hover card--link" href="/views/executor.bxm">
+      <h3 class="card__title"><span aria-hidden="true">▶</span> Executor</h3>
+      <p class="card__meta">Lista de checks en vivo con POLLING, trazas y capturas. La fuente del badge es el ejecutor real.</p>
+      <span class="provenance">Resultado ejecutado, no generado</span>
+    </a>
+    <a class="card card--hover card--link" href="/views/code.bxm">
+      <h3 class="card__title"><span aria-hidden="true">▤</span> Code &amp; Review</h3>
+      <p class="card__meta">Explica el flujo de una función y revisa hallazgos con evidencia archivo:línea y parches copiables.</p>
+      <span class="provenance">Hallazgo demostrado ≠ sugerencia</span>
+    </a>
+    <a class="card card--hover card--link" href="/views/history.bxm">
+      <h3 class="card__title"><span aria-hidden="true">≡</span> Historial</h3>
+      <p class="card__meta">Recupera análisis previos, expórtalos a Markdown y borra datos obsoletos.</p>
+      <span class="provenance">Evidencia reproducible</span>
+    </a>
+    <a class="card card--hover card--link" href="/views/ui-kit.bxm">
+      <h3 class="card__title"><span aria-hidden="true">◫</span> UI Kit <span class="badge badge--idle">DESARROLLO</span></h3>
+      <p class="card__meta">Catálogo interno de componentes. Se retira antes de la entrega.</p>
+      <span class="provenance provenance--mock">Solo desarrollo</span>
+    </a>
+  </div>
+</section>
+
+<!-- 5. TARJETAS DE RESUMEN (el JS las refresca una a una; pueden fallar sin tumba el panel) -->
+<section aria-labelledby="latest-title" class="reveal">
+  <h2 id="latest-title" class="card__title" style="margin-top:32px;">Lo más reciente</h2>
+  <div class="summary-grid">
+    <!-- Último requisito -->
+    <div class="card card--hover summary" data-summary="requirement">
+      <div class="skeleton skeleton--kpi" data-skeleton-for="summary-req" aria-hidden="true"></div>
+    </div>
+    <!-- Última ejecución (PASS/FAIL + tiempos) -->
+    <div class="card card--hover summary" data-summary="run">
+      <div class="skeleton skeleton--kpi" data-skeleton-for="summary-run" aria-hidden="true"></div>
+    </div>
+    <!-- Últimos 5 elementos del historial -->
+    <div class="card card--hover summary" data-summary="history">
+      <div class="skeleton skeleton--kpi" data-skeleton-for="summary-history" aria-hidden="true"></div>
+    </div>
+  </div>
+  <p id="dash-loaded-at" class="mono-label" style="margin-top:12px;"></p>
+</section>
+</bx:output>

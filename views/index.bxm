@@ -1,0 +1,19 @@
+<!--
+  SuckLess · views/index.bxm — Página del Panel Principal (Etapa 2).
+  Wrapper que组合 el layout base con el contenido del dashboard en SSR puro:
+  el <main> del layout incluye el contenido de este módulo.
+-->
+
+<!-- Que el layout imprima este contenido en su <main>: variable contentSection -->
+<bx:savecontent variable="pageContent">
+  <!-- El contenido real vive en dashboard.bxm; lo incluimos aquí para que el
+       SSR lo interpole dentro del layout. -->
+  <bx:include template="dashboard.bxm" />
+</bx:savecontent>
+
+<bx:set pageTitle = "Panel principal" />
+<bx:set activeNav = "dashboard" />
+<bx:set useMock = true />
+
+<!-- El layout imprime pageContent en <main>; cronológicamente, base.bxm usa pageContent -->
+<bx:include template="layouts/base.bxm" />

@@ -124,7 +124,7 @@
         <button class="tab" role="tab" aria-selected="false" type="button">Revisar</button>
     </div>
     <details class="acc" style="margin-top:16px;">
-        <summary>fin&#8209;01 · ALTA · LOGICA</summary>
+        <summary>fin-01 · ALTA · LOGICA</summary>
         <div class="acc__body">
             <p class="card__meta"><span class="badge badge--fail">ALTA</span> <span class="provenance provenance--mock">Dato de ejemplo</span></p>
             <p><strong>Evidencia:</strong> this.cart.find(...) — no existe this.cart en el scope.</p>
