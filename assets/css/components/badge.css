@@ -39,6 +39,7 @@
   border-radius: 6px;
 }
 .provenance--mock { color: var(--warn); border-color: var(--warn); }
+html[data-suckless-demo="false"] .provenance--mock { display: none; }
 /* Rótulo fijo de IA (no determina el resultado) */
 .ai-tag {
   display: inline-block;

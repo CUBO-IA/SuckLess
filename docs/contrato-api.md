@@ -2,7 +2,7 @@
 
 Versión: `1.1.0` (contrato integrado con el motor Node)
 
-Este documento define el contrato entre el frontend SSR BoxLang (`.bxm`/`.bxs`, vanilla JS en `assets/js/`) y el backend Node (`panel/server.js`). Las rutas tienen handlers en `panel/routes/`; `data-suckless-demo` controla el modo por vista. Requirements Gate ya conecta con el API real y su entrevista se validó visualmente hasta el estado listo para revisión; las demás vistas siguen en modo demo mientras se completan sus smoke tests.
+Este documento define el contrato entre el frontend SSR BoxLang (`.bxm`/`.bxs`, vanilla JS en `assets/js/`) y el backend Node (`panel/server.js`). Las rutas tienen handlers en `panel/routes/`; `data-suckless-demo` controla el modo por vista. Requirements Gate ya conecta con el API real y su entrevista se validó visualmente hasta el estado listo para revisión. History y Dashboard también usan el API real tras smoke tests en navegador con SSR y backend activos; las vistas restantes siguen en modo demo mientras se completan sus smoke tests.
 
 ---
 
