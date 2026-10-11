@@ -14,6 +14,10 @@ import { toastError } from '../ui/toast.js';
 
 const el = (sel) => document.querySelector(sel);
 
+export function countOpenFindings(findings) {
+  return findings.filter((finding) => !finding.proven).length;
+}
+
 // ---------------------------------------------------------------------------
 // Utilidades DOM seguras (solo textContent / createElement)
 // ---------------------------------------------------------------------------
@@ -127,7 +131,7 @@ async function refreshKpis() {
     if (review.status === 'fulfilled') {
       if (USE_MOCK) {
         const findings = review.value.data.findings ?? [];
-        renderKpi(findingsKpi, { value: findings.length, label: 'Hallazgos abiertos', variant: 'warn' });
+        renderKpi(findingsKpi, { value: countOpenFindings(findings), label: 'Hallazgos abiertos', variant: 'warn' });
       } else {
         const reviews = Array.isArray(review.value.data) ? review.value.data : [];
         if (reviews.length === 0) {
@@ -136,7 +140,7 @@ async function refreshKpis() {
           try {
             const { data } = await api(`/api/history/${encodeURIComponent(reviews[0].id)}`);
             if (!Array.isArray(data.data?.findings)) throw new ApiError('EMPTY_RESPONSE', 'El detalle no contiene hallazgos.');
-            renderKpi(findingsKpi, { value: data.data.findings.length, label: 'Hallazgos abiertos', variant: 'warn' });
+            renderKpi(findingsKpi, { value: countOpenFindings(data.data.findings), label: 'Hallazgos abiertos', variant: 'warn' });
           } catch {
             renderCardError(findingsKpi, 'No se pudieron cargar los hallazgos', refreshKpis);
           }
