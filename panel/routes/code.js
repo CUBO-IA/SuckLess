@@ -3,8 +3,12 @@ import { readSource } from '../../engine/code.js';
 import { runExplain, runReview } from '../../engine/service.js';
 import { httpError, jsonResult, validateObject } from './shared.js';
 
-const severity = (value) => ({ alta: 'ALTA', media: 'MEDIA', baja: 'BAJA' })[value] ?? 'BAJA';
-const category = (value) => ({ lógica: 'LOGICA', seguridad: 'SEGURIDAD', calidad: 'CALIDAD' })[value] ?? 'CALIDAD';
+function enumValue(value, mapping, label) {
+  if (!Object.hasOwn(mapping, value)) {
+    throw httpError(500, 'INTERNAL', `Valor interno de ${label} no reconocido: ${value}.`);
+  }
+  return mapping[value];
+}
 
 export async function handle(req, url, body) {
   if (req.method === 'GET' && url.pathname === '/api/files') {
@@ -21,7 +25,7 @@ export async function handle(req, url, body) {
       id: `exp_${result.id}`,
       status: 'OK',
       symbol: explanation.symbol,
-      summary: explanation.note,
+      summary: result.record.summary,
       steps: explanation.flow.map((step) => ({
         text: step.note || step.text,
         file: explanation.file,
@@ -40,8 +44,8 @@ export async function handle(req, url, body) {
     const result = runReview({ files: body.files, reqId: body.requirementId || null });
     const findings = result.findings.map((finding, index) => ({
       id: `fin_${result.id}_${index + 1}`,
-      severity: severity(finding.severity),
-      category: category(finding.category),
+      severity: enumValue(finding.severity, { alta: 'ALTA', media: 'MEDIA', baja: 'BAJA' }, 'severidad'),
+      category: enumValue(finding.category, { lógica: 'LOGICA', seguridad: 'SEGURIDAD', calidad: 'CALIDAD' }, 'categoría'),
       file: finding.file ?? null,
       lines: finding.lines ?? null,
       evidence: finding.evidence,
