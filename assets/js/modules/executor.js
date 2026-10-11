@@ -14,7 +14,7 @@
  *    (no determina el resultado)", jamás junto al badge.
  *  - Solo textContent/createElement; NADA de innerHTML con datos.
  */
-import { api, pollRun, ApiError } from '../api.js';
+import { api, pollRun, ApiError, USE_MOCK } from '../api.js';
 import { initLightbox } from '../ui/lightbox.js';
 import { toastError, toastOk, toastInfo } from '../ui/toast.js';
 
@@ -256,7 +256,7 @@ async function startRun() {
       renderTrace(snapshot);
       renderAi(snapshot);
       if (['PASS', 'FAIL', 'EXECUTOR_ERROR'].includes(snapshot.status)) {
-        toastOk(`Corrida terminada: ${snapshot.status} (datos de ejemplo).`);
+        toastOk(`Corrida terminada: ${snapshot.status}${USE_MOCK ? ' (datos de ejemplo)' : ''}.`);
         cancelBtn.hidden = true; btn.disabled = false;
       }
     }, { intervalMs: 1200, maxDurationMs: 120_000 });
@@ -302,7 +302,10 @@ async function populateRequirements() {
       if (r.status !== 'APPROVED') opt.disabled = true; // solo APROBADOS sedan válidos
       sel.append(opt);
     }
-  } catch { /* selected defaults keep working */ }
+  } catch (error) {
+    const msg = error instanceof ApiError ? `${error.code}: ${error.message}` : error?.message ?? 'Error inesperado';
+    toastError(`No se pudieron cargar los requisitos: ${msg}`);
+  }
 }
 
 // ---------------------------------------------------------------------------
