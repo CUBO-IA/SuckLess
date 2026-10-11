@@ -110,6 +110,11 @@ test('API HTTP: requirement interview, approval, async execution and history rou
     assert.equal(launched.response.status, 200);
     assert.equal(launched.body.status, 'QUEUED');
     assert.deepEqual(launched.body.checks, []);
+    assert.equal(launched.body.durationMs, null);
+    assert.deepEqual(launched.body.summary, { pass: 0, fail: 0, error: 0 });
+    assert.deepEqual(launched.body.trace, { steps: [], downloadUrl: null });
+    assert.deepEqual(launched.body.screenshots, []);
+    assert.equal(launched.body.aiInterpretation, null);
 
     let run;
     const deadline = Date.now() + 20_000;
@@ -122,6 +127,8 @@ test('API HTTP: requirement interview, approval, async execution and history rou
     assert.equal(run.status, 'PASS');
     assert.equal(run.summary.fail, 0);
     assert.equal(run.checks.length, 8);
+    assert.ok(run.durationMs >= 0);
+    assert.ok(run.checks.every((check) => ['PASS', 'FAIL', 'EXECUTOR_ERROR'].includes(check.status)));
 
     const latest = await json(base, '/api/executor/run/latest');
     assert.equal(latest.body.status, 'PASS');
@@ -277,6 +284,27 @@ test('API HTTP: other adapters return contract shapes and errors use the uniform
     assert.equal(unknownId.body.error.code, 'NOT_FOUND');
 
     const missing = await json(base, '/api/history/99999999');
+    assert.equal(missing.response.status, 404);
+    assert.equal(missing.body.error.code, 'NOT_FOUND');
+  });
+});
+
+test('API HTTP: debug and executor validate input and return missing-run errors', async () => {
+  await withServer(async (base) => {
+    const headers = { 'Content-Type': 'application/json' };
+    const requests = [
+      ['/api/debug/analyze', { log: '' }],
+      ['/api/debug/analyze', { log: 'TypeError: boom', requirementId: 12 }],
+      ['/api/executor/run', { target: 'unknown' }],
+      ['/api/executor/run', { target: 'fixed', requirementId: 'invalid' }],
+    ];
+    for (const [route, body] of requests) {
+      const result = await json(base, route, { method: 'POST', headers, body: JSON.stringify(body) });
+      assert.equal(result.response.status, 400);
+      assert.equal(result.body.error.code, 'VALIDATION');
+      assert.equal(typeof result.body.error.message, 'string');
+    }
+    const missing = await json(base, '/api/executor/run/run_missing');
     assert.equal(missing.response.status, 404);
     assert.equal(missing.body.error.code, 'NOT_FOUND');
   });

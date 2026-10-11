@@ -1,11 +1,13 @@
 import './_env.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { randomUUID } from 'node:crypto';
 import fs from 'node:fs';
+import path from 'node:path';
 import { redact } from '../engine/redact.js';
 import * as R from '../engine/requirements.js';
-import { runChecks } from '../engine/runner.js';
-import { BASE_CHECKS, TARGETS } from '../engine/util.js';
+import { runChecks, runChecksAsync } from '../engine/runner.js';
+import { BASE_CHECKS, DATA_DIR, TARGETS } from '../engine/util.js';
 import { parseStackTrace } from '../engine/debug.js';
 import { runDebug, runExplain, runReview, runVerify, realTrace } from '../engine/service.js';
 import { countArtifacts, deleteAnalysis, getAnalysis, listAnalyses } from '../engine/history.js';
@@ -17,6 +19,17 @@ const approvedReq = () => {
   R.answerRequirement(d.id, ANSWERS);
   return R.approveRequirement(d.id, 'Equipo de prueba');
 };
+
+async function withCheckFile(source, callback) {
+  const dir = fs.mkdtempSync(path.join(DATA_DIR, 'runner-test-'));
+  const file = path.join(dir, `${randomUUID()}.mjs`);
+  try {
+    fs.writeFileSync(file, source);
+    return await callback(file);
+  } finally {
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+}
 
 test('redact: elimina secretos comunes y conserva el resto', () => {
   const t = redact('Authorization: Bearer abc.def-123 password=hunter2 key sk-abcdefghijklmnopqrstuvwx url postgres://u:pw@host/db TypeError: x');
@@ -66,6 +79,47 @@ test('runner: el error sembrado falla en demo-store y pasa en demo-store-fixed',
 test('runner: rechaza archivos fuera del proyecto y targets desconocidos', () => {
   assert.throws(() => runChecks({ files: ['/etc/passwd'] }), /no permitido/);
   assert.throws(() => runChecks({ files: [BASE_CHECKS], target: 'prod' }), /Target desconocido/);
+});
+
+test('runner async: ejecuta checks y devuelve su resultado completo', async () => {
+  const result = await runChecksAsync({ files: [BASE_CHECKS], target: 'fixed' });
+  assert.equal(result.runnerError, null);
+  assert.equal(result.summary.total, 3);
+  assert.equal(result.summary.pass, 3);
+  assert.ok(result.results.every((check) => check.status === 'PASS'));
+});
+
+test('runner async: limita la salida combinada y rechaza resultados malformados', async () => {
+  await withCheckFile(
+    "export const checks = [{ id: 'OUTPUT', run() { process.stdout.write('x'.repeat(3 * 1024 * 1024)); process.stderr.write('x'.repeat(3 * 1024 * 1024)); } }];",
+    async (file) => {
+      const result = await runChecksAsync({ files: [file], target: 'fixed' });
+      assert.match(result.runnerError, /superó el límite de salida/);
+      assert.deepEqual(result.results, []);
+    },
+  );
+  await withCheckFile(
+    "export const checks = [{ id: 'MARKER', run() { process.once('exit', () => process.stdout.write('\\n@@SUCKLESS_RESULTS@@{}\\n')); } }];",
+    async (file) => {
+      const result = await runChecksAsync({ files: [file], target: 'fixed' });
+      assert.match(result.runnerError, /Respuesta inválida del ejecutor/);
+      assert.deepEqual(result.results, []);
+      const synchronousResult = runChecks({ files: [file], target: 'fixed' });
+      assert.match(synchronousResult.runnerError, /Respuesta inválida del ejecutor/);
+      assert.deepEqual(synchronousResult.results, []);
+    },
+  );
+});
+
+test('runner async: convierte el timeout en un error del ejecutor', async () => {
+  await withCheckFile(
+    "export const checks = [{ id: 'SLOW', async run() { await new Promise((resolve) => setTimeout(resolve, 1000)); } }];",
+    async (file) => {
+      const result = await runChecksAsync({ files: [file], target: 'fixed', timeoutMs: 100 });
+      assert.match(result.runnerError, /^Tiempo agotado/);
+      assert.deepEqual(result.results, []);
+    },
+  );
 });
 
 test('debug: parsea trazas V8 y con formato corto (cart.js:27)', () => {
